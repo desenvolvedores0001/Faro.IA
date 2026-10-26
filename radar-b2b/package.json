@@ -1,0 +1,22 @@
+{
+  "name": "radar-b2b",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Faro: front-end + API num projeto só. Busca empresas (Google Places), enriquece o diagnóstico (site + PageSpeed) e gera a abordagem com a API da Claude.",
+  "main": "server.js",
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "latest",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

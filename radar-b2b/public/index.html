@@ -1,0 +1,1980 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Faro B2B — Prospecção digital</title>
+<meta name="description" content="Encontre empresas por nicho e estado, veja o que falta na presença digital delas e receba uma mensagem de abordagem pronta.">
+<meta name="theme-color" content="#6d5cff">
+<style>
+  /* Layout: app shell com sidebar à esquerda; busca em destaque (hero),
+     indicadores, lista de empresas e painel de diagnóstico/abordagem. */
+  :root{
+    --bg:#f5f6fb; --surface:#ffffff; --surface-2:#eef0fb; --border:#e5e6f4;
+    --fg:#15141f; --muted:#64637e; --accent:#6d5cff; --accent-2:#06b6d4; --accent-fg:#ffffff;
+    --accent-soft:#ece9ff;
+    --good:#0f9d58; --good-soft:#dcfce7;
+    --warn:#c2410c; --warn-soft:#ffedd5;
+    --crit:#e11d48; --crit-soft:#ffe4e6;
+    --grad:linear-gradient(135deg,#6d5cff 0%,#9333ea 48%,#06b6d4 100%);
+    --shadow:0 1px 2px rgba(20,20,43,.05),0 8px 24px rgba(20,20,43,.07);
+    --radius:14px;
+    --font-display:"Sora",system-ui,sans-serif;
+    --font-body:"IBM Plex Sans",system-ui,sans-serif;
+    --font-mono:"IBM Plex Mono",ui-monospace,monospace;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --bg:#0b0b14; --surface:#14141f; --surface-2:#1d1d2c; --border:#2b2b40;
+    --fg:#ececf5; --muted:#9b9ab6; --accent:#8b7cff; --accent-2:#22d3ee; --accent-fg:#ffffff;
+    --accent-soft:#241f45;
+    --good:#4ade80; --good-soft:#0f2e1c;
+    --warn:#fb923c; --warn-soft:#3a2410;
+    --crit:#fb7185; --crit-soft:#3d1420;
+    --grad:linear-gradient(135deg,#7c6cff 0%,#a855f7 48%,#22d3ee 100%);
+    --shadow:0 1px 2px rgba(0,0,0,.5),0 10px 28px rgba(0,0,0,.4);
+    color-scheme:dark;
+  }}
+  :root[data-theme="dark"]{
+    --bg:#0b0b14; --surface:#14141f; --surface-2:#1d1d2c; --border:#2b2b40;
+    --fg:#ececf5; --muted:#9b9ab6; --accent:#8b7cff; --accent-2:#22d3ee; --accent-fg:#ffffff;
+    --accent-soft:#241f45;
+    --good:#4ade80; --good-soft:#0f2e1c;
+    --warn:#fb923c; --warn-soft:#3a2410;
+    --crit:#fb7185; --crit-soft:#3d1420;
+    --grad:linear-gradient(135deg,#7c6cff 0%,#a855f7 48%,#22d3ee 100%);
+    --shadow:0 1px 2px rgba(0,0,0,.5),0 10px 28px rgba(0,0,0,.4);
+    color-scheme:dark;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  img{max-width:100%}
+  [hidden]{display:none!important}
+  body{background:var(--bg);color:var(--fg);font-family:var(--font-body);line-height:1.5;font-size:14px;-webkit-font-smoothing:antialiased}
+  h1,h2,h3{font-family:var(--font-display);text-wrap:balance;margin:0;letter-spacing:-.01em}
+  .mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+  button{font-family:inherit}
+  a{color:var(--accent)}
+  .logo{border-radius:9px;flex:none;position:relative;overflow:hidden;background:var(--grad);box-shadow:0 3px 10px color-mix(in srgb,var(--accent) 45%,transparent)}
+  .logo::after{content:"";position:absolute;inset:26%;border-radius:50%;border:1.5px solid rgba(255,255,255,.9);border-right-color:transparent;border-bottom-color:transparent}
+
+  input,select,textarea{width:100%;background:var(--surface);color:var(--fg);border:1px solid var(--border);border-radius:10px;padding:11px 12px;font-size:14px;font-family:inherit}
+  textarea{resize:vertical;line-height:1.55}
+  .field label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:5px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:0;border-radius:10px;padding:11px 18px;font-weight:600;font-size:14px;cursor:pointer;background:var(--grad);color:#fff;white-space:nowrap;box-shadow:0 4px 14px color-mix(in srgb,var(--accent) 32%,transparent)}
+  .btn:hover{filter:brightness(1.06)}
+  .btn:disabled{opacity:.6;cursor:default}
+  .btn.ghost{background:var(--surface);color:var(--fg);border:1px solid var(--border);box-shadow:none}
+  .btn.wpp{background:#25d366;color:#04310f;box-shadow:0 4px 14px rgba(37,211,102,.35)}
+  .btn.block{width:100%}
+  .link-btn{border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:12px;text-decoration:underline;padding:0}
+
+  /* ---------- auth ---------- */
+  .auth{min-height:100vh;display:grid;place-items:center;padding:24px}
+  .auth-card{display:grid;grid-template-columns:1fr 1fr;max-width:860px;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:var(--shadow)}
+  .auth-brand{background:var(--grad);color:#fff;padding:34px 30px;display:flex;flex-direction:column;gap:16px}
+  .auth-brand .logo{width:46px;height:46px}
+  .auth-brand h1{color:#fff;font-size:25px}
+  .auth-brand p{opacity:.92;font-size:14px;margin:0}
+  .auth-brand ul{list-style:none;padding:0;margin:6px 0 0;display:flex;flex-direction:column;gap:11px;font-size:14px;opacity:.96}
+  .auth-brand li{display:flex;gap:9px;align-items:flex-start}
+  .auth-brand li .c{flex:none;width:18px}
+  .auth-form{padding:34px 30px;display:flex;flex-direction:column;gap:12px}
+  .auth-form h2{font-size:21px}
+  .auth-form .field label{text-transform:none;font-size:13px}
+  .auth-err{font-size:13px;min-height:16px;margin:0}
+  .auth-switch{font-size:13px;color:var(--muted);margin:2px 0 0}
+  .auth-switch a{cursor:pointer;font-weight:600}
+  @media(max-width:700px){.auth-card{grid-template-columns:1fr} .auth-brand{display:none}}
+
+  /* ---------- shell / sidebar ---------- */
+  .shell{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
+  .sidebar{position:sticky;top:0;align-self:start;height:100vh;display:flex;flex-direction:column;gap:6px;
+    background:var(--surface);border-right:1px solid var(--border);
+    padding:18px 14px;padding-top:max(18px,env(safe-area-inset-top,18px))}
+  .sidebar .brand{display:flex;align-items:center;gap:10px;margin:2px 4px 14px}
+  .sidebar .brand .logo{width:32px;height:32px}
+  .sidebar .brand b{font-family:var(--font-display);font-weight:700;font-size:18px;letter-spacing:-.02em;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .nav{display:flex;flex-direction:column;gap:4px}
+  .navbtn{display:flex;align-items:center;gap:11px;width:100%;text-align:left;border:0;background:transparent;color:var(--muted);font-weight:600;font-size:14px;padding:11px 12px;border-radius:10px;cursor:pointer}
+  .navbtn:hover{background:var(--surface-2);color:var(--fg)}
+  .navbtn[aria-selected="true"]{background:var(--accent-soft);color:var(--accent)}
+  .navbtn .ic{width:20px;text-align:center;font-size:15px}
+  .navbtn .count{margin-left:auto;font-size:12px;font-weight:700;background:var(--surface-2);color:var(--muted);padding:1px 8px;border-radius:999px}
+  .navbtn[aria-selected="true"] .count{background:color-mix(in srgb,var(--accent) 20%,transparent);color:var(--accent)}
+  .side-foot{margin-top:auto;display:flex;flex-direction:column;gap:12px;padding-top:12px;border-top:1px solid var(--border)}
+  .account{display:flex;align-items:center;gap:9px;min-width:0}
+  .account .av{width:32px;height:32px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center;font-weight:700;flex:none}
+  .account .who{min-width:0;line-height:1.3}
+  .account .who b{display:block;color:var(--fg);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
+  .account .who span{font-size:11px;color:var(--muted)}
+
+  .content{min-width:0}
+  .content main{max-width:1100px;margin:0 auto;
+    padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px));padding-block:22px 48px}
+
+  @media(max-width:900px){
+    .shell{grid-template-columns:1fr}
+    .sidebar{position:sticky;top:0;height:auto;flex-direction:row;align-items:center;gap:10px;flex-wrap:wrap;
+      border-right:0;border-bottom:1px solid var(--border);padding:10px 14px;z-index:20}
+    .sidebar .brand{margin:0 auto 0 0}
+    .nav{flex-direction:row}
+    .navbtn{padding:8px 11px}
+    .side-foot{margin:0;flex-direction:row;align-items:center;border-top:0;padding-top:0;gap:8px}
+    .account .who{display:none}
+  }
+
+  /* ---------- hero / busca ---------- */
+  .hero{position:relative;overflow:hidden;border-radius:18px;padding:24px;margin-bottom:16px;color:#fff;background:var(--grad);box-shadow:var(--shadow)}
+  .hero::after{content:"";position:absolute;right:-50px;top:-50px;width:230px;height:230px;border-radius:50%;background:rgba(255,255,255,.12)}
+  .hero h1{font-size:24px;color:#fff;margin-bottom:4px}
+  .hero p{margin:0 0 16px;opacity:.92;font-size:14px;max-width:48ch}
+  .hero-search{display:grid;grid-template-columns:1.6fr 1.1fr .7fr auto;gap:10px;position:relative;z-index:1}
+  .hero-search .field label{color:rgba(255,255,255,.85)}
+  .hero-search input,.hero-search select{background:rgba(255,255,255,.96);border:1px solid transparent;color:#15141f}
+  .hero-search .btn{background:#fff;color:var(--accent);box-shadow:none;align-self:end;height:44px}
+  .hero-search .btn:hover{filter:brightness(.96)}
+  @media(max-width:620px){.hero-search{grid-template-columns:1fr}.hero-search .btn{height:auto}}
+
+  .note{display:flex;gap:10px;align-items:flex-start;background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 30%,transparent);border-radius:12px;padding:11px 14px;font-size:13px;color:var(--fg);margin-bottom:16px}
+  .note .x{margin-left:auto;border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;flex:none}
+  .mode{display:inline-flex;align-items:center;gap:6px;font-weight:700}
+  .mode .d{width:8px;height:8px;border-radius:50%}
+  .mode.live{color:var(--good)} .mode.live .d{background:var(--good)}
+  .mode.demo{color:var(--warn)} .mode.demo .d{background:var(--warn)}
+
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+  .tile{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
+  .tile .n{font-family:var(--font-display);font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
+  .tile .l{font-size:12px;color:var(--muted);margin-top:5px;display:flex;align-items:center;gap:6px}
+  .tile .l .dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+  .tile.hot .n{color:var(--crit)} .tile.hot .l .dot{background:var(--crit)}
+  .tile.saved .n{color:var(--good)} .tile.saved .l .dot{background:var(--good)}
+  @media(max-width:560px){.kpis{grid-template-columns:1fr 1fr}}
+
+  .result-count{font-size:12px;color:var(--muted);margin:0}
+  .toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:2px 2px 14px;min-height:36px}
+  .toolbar .btn{padding:8px 14px;font-size:13px}
+  a.btn{text-decoration:none}
+
+  /* contatos (e-mail, redes) */
+  .contacts{display:flex;flex-direction:column;gap:9px}
+  .crow{display:flex;gap:10px;align-items:flex-start}
+  .clabel{flex:none;width:78px;font-size:12px;font-weight:600;color:var(--muted);padding-top:4px}
+  .cval{display:flex;flex-direction:column;gap:6px;min-width:0}
+  .cval.wrap{flex-direction:row;flex-wrap:wrap}
+  .erow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;word-break:break-all}
+  .mini{font-size:12px;font-weight:600;padding:4px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surface-2);color:var(--fg);text-decoration:none;cursor:pointer;font-family:inherit}
+  .mini:hover{border-color:var(--accent);color:var(--accent)}
+
+  /* cards em grade: 3 por fileira (2 em tablet, 1 no celular) */
+  .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+  @media(max-width:980px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:620px){.grid{grid-template-columns:1fr}}
+  .grid .lead{height:100%}
+  .lead .addr{font-size:12px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .lead .cat{font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.04em}
+  .lead .more{margin-top:auto;font-size:12px;font-weight:600;color:var(--accent)}
+  .empty-grid{grid-column:1/-1;text-align:center;color:var(--muted);padding:44px 20px;background:var(--surface);border:1px dashed var(--border);border-radius:var(--radius)}
+  .badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap;flex:none}
+  .badge.ok{background:var(--good-soft);color:var(--good)}
+  .badge.mid{background:var(--warn-soft);color:var(--warn)}
+  .badge.off{background:var(--surface-2);color:var(--muted)}
+  .badge.bad{background:var(--crit-soft);color:var(--crit)}
+  .badge.info{background:var(--accent-soft);color:var(--accent)}
+  .src-line{font-size:11.5px;color:var(--muted);margin-top:5px}
+  .phbox{border:1px solid var(--border);border-radius:12px;padding:13px 14px;margin:14px 0 2px;background:var(--surface)}
+  .phbox .phhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .phbox .phnum{font-family:var(--font-mono);font-size:16px;font-weight:600}
+  .phbox .phtext{font-size:13px;color:var(--fg);margin:8px 0 0;line-height:1.5}
+  .phbox ul{margin:8px 0 0;padding-left:18px;font-size:12.5px;color:var(--muted);line-height:1.55}
+  .phbox ul li b{color:var(--fg);font-weight:600}
+  .phbox .phalert{background:var(--warn-soft);color:var(--warn);border-radius:9px;padding:8px 10px;font-size:12.5px;margin-top:8px;line-height:1.45}
+  .phbox .phrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .phbox .mini{font-size:12px;padding:6px 10px}
+  .wa-note{font-size:12px;color:var(--muted);margin:8px 0 0;line-height:1.5}
+  .phexplain{margin-top:14px;font-size:13px;color:var(--muted)}
+  .phexplain summary{cursor:pointer;font-weight:600;color:var(--fg)}
+  .phexplain ul{margin:8px 0 0;padding-left:18px;line-height:1.6}
+  .hint{font-size:12px;color:var(--muted);margin-top:6px}
+
+  /* filtros dentro do hero */
+  .hero-filters{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;position:relative;z-index:1}
+  .hero-filters .field{flex:1;min-width:220px}
+  .hero-filters .field label{color:rgba(255,255,255,.85)}
+  .hero-filters select{background:rgba(255,255,255,.96);border:1px solid transparent;color:#15141f}
+
+  /* janela de detalhes da empresa */
+  .overlay{position:fixed;inset:0;z-index:100;background:rgba(8,8,16,.62);display:grid;place-items:center;padding:20px;overflow-y:auto}
+  .modal{position:relative;width:min(760px,100%);max-height:calc(100vh - 40px);overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:18px;box-shadow:0 24px 60px rgba(0,0,0,.45)}
+  .modal .panel{border:0;box-shadow:none;border-radius:0;padding:24px}
+  .modal-x{position:sticky;top:10px;float:right;margin:10px 10px 0 0;width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:var(--surface-2);color:var(--fg);font-size:20px;line-height:1;cursor:pointer;z-index:2}
+  .lead{text-align:left;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px 14px;cursor:pointer;display:flex;flex-direction:column;gap:8px;box-shadow:var(--shadow)}
+  .lead:hover{border-color:var(--accent)}
+  .lead[aria-current="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft),var(--shadow)}
+  .lead .top{display:flex;align-items:flex-start;gap:8px}
+  .lead h3{font-size:15px;flex:1;min-width:0}
+  .lead .meta{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted)}
+  .lead .meta .mono{color:var(--fg)}
+  .heat{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap;flex:none}
+  .heat.hot{background:var(--crit-soft);color:var(--crit)}
+  .heat.warm{background:var(--warn-soft);color:var(--warn)}
+  .heat.cold{background:var(--surface-2);color:var(--muted)}
+  .chips{display:flex;flex-wrap:wrap;gap:5px}
+  .chip{font-size:11px;padding:2px 8px;border-radius:999px;font-weight:600;display:inline-flex;align-items:center;gap:4px}
+  .chip.ok{background:var(--good-soft);color:var(--good)}
+  .chip.bad{background:var(--crit-soft);color:var(--crit)}
+  .chip.mid{background:var(--warn-soft);color:var(--warn)}
+  .chip .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;min-width:0}
+  .panel .empty{color:var(--muted);text-align:center;padding:48px 20px}
+  .panel .empty .big{font-size:40px;opacity:.5}
+  .ph-head{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--border);padding-bottom:16px;margin-bottom:16px}
+  .ph-head h2{font-size:21px;flex:1;min-width:150px}
+  .kv{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-top:6px}
+  .kv b{color:var(--fg)}
+  .sec-title{font-family:var(--font-display);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:22px 0 10px;display:flex;align-items:center;gap:8px}
+  .sec-title::after{content:"";flex:1;height:1px;background:var(--border)}
+
+  .audit{display:flex;flex-direction:column;gap:8px}
+  .gap{display:flex;gap:11px;align-items:flex-start;background:var(--surface-2);border-radius:11px;padding:11px 13px}
+  .gap .sev{width:8px;height:8px;border-radius:50%;margin-top:6px;flex:none}
+  .gap.crit .sev{background:var(--crit)} .gap.warn .sev{background:var(--warn)}
+  .gap .txt{min-width:0}
+  .gap .txt b{display:block;font-size:14px}
+  .gap .txt small{color:var(--muted);font-size:12.5px}
+  .gap .offer{margin-left:auto;font-size:11px;font-weight:600;color:var(--accent);background:var(--accent-soft);padding:4px 9px;border-radius:999px;white-space:nowrap;align-self:center}
+  .allgood{display:flex;gap:10px;align-items:center;background:var(--good-soft);color:var(--good);padding:13px;border-radius:11px;font-size:13.5px;font-weight:500}
+  .enrich-note{font-size:12px;color:var(--muted);margin-top:9px;display:flex;align-items:center;gap:7px}
+  .spin{width:13px;height:13px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;display:inline-block;animation:sp .7s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+
+  .msgbox textarea{min-height:260px;font-size:14px;line-height:1.55}
+  @media(max-width:620px){.msgbox textarea{min-height:340px}}
+  .msg-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .toneline{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .tone{font-size:12px;font-weight:600;padding:6px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer}
+  .tone[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+  .namerow{display:flex;gap:8px;align-items:end;margin-bottom:14px;flex-wrap:wrap}
+  .namerow .field{flex:1;min-width:160px}
+  .tag{font-size:10px;font-weight:700;color:#fff;background:var(--grad);padding:2px 7px;border-radius:999px;vertical-align:middle}
+
+  .saved-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+  .scard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:9px}
+  .scard h3{font-size:15px}
+  .scard .sel{font-size:12px;padding:7px 9px;border-radius:9px}
+  .scard .row{display:flex;gap:8px;align-items:center}
+  .stage{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px}
+  .stage.novo{background:var(--surface-2);color:var(--muted)}
+  .stage.contatado{background:var(--warn-soft);color:var(--warn)}
+  .stage.respondeu{background:var(--accent-soft);color:var(--accent)}
+  .stage.fechado{background:var(--good-soft);color:var(--good)}
+  .empty-saved{text-align:center;color:var(--muted);padding:50px 20px}
+  .page-title{font-size:20px;margin-bottom:14px}
+
+  details.arch{margin-top:30px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:4px 16px}
+  details.arch summary{cursor:pointer;font-weight:600;padding:12px 0;font-family:var(--font-display);font-size:14px}
+  details.arch[open]{padding-bottom:16px}
+  details.arch .body{font-size:13.5px;color:var(--muted);display:flex;flex-direction:column;gap:12px}
+  details.arch code{background:var(--surface-2);padding:1px 6px;border-radius:5px;font-family:var(--font-mono);font-size:12px;color:var(--fg)}
+  details.arch b{color:var(--fg)}
+
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--fg);color:var(--bg);padding:11px 18px;border-radius:999px;font-size:13px;font-weight:600;transition:.25s;z-index:60;pointer-events:none;box-shadow:var(--shadow)}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media(max-width:760px){.split{grid-template-columns:1fr}}
+  /* ===================== visual v2: mais cor + guia de primeiros passos ===================== */
+  .hero{padding:30px 28px 26px;background:
+    radial-gradient(760px 280px at 92% -25%,rgba(255,255,255,.30),transparent 62%),
+    radial-gradient(520px 260px at -6% 125%,rgba(236,72,153,.50),transparent 62%),
+    var(--grad)}
+  .hero h1{font-size:30px;line-height:1.15;max-width:24ch;margin-bottom:8px}
+  .hero p{font-size:15px;max-width:60ch}
+  .hero-search .field label .n,.hero-search .btn .n{display:inline-grid;place-items:center;width:19px;height:19px;border-radius:50%;background:#fff;color:var(--accent);font-size:11px;font-weight:700;margin-right:7px;text-transform:none}
+  .hero-search .btn{background:linear-gradient(135deg,#fde047,#fb923c);color:#3b1d00;font-weight:700;padding:0 22px;min-height:46px;box-shadow:0 8px 22px rgba(251,146,60,.45)}
+  .hero-search .btn .n{background:#3b1d00;color:#fde047}
+  .hero-search .btn:hover{filter:brightness(1.05)}
+  .hero-search .btn:disabled{opacity:.5;cursor:not-allowed;box-shadow:none;filter:grayscale(.35)}
+
+  /* bolha que mostra onde clicar */
+  .guide-wrap{position:relative;height:50px;z-index:2}
+  .guide-wrap:has(.guide[hidden]){height:0}
+  .guide{position:absolute;top:0;left:0;background:#fff;color:#1a1530;font-weight:700;font-size:13.5px;padding:9px 15px;border-radius:12px;box-shadow:0 10px 26px rgba(0,0,0,.28);white-space:nowrap}
+  .guide::after{content:"";position:absolute;bottom:-6px;left:var(--ax,30px);width:14px;height:14px;background:#fff;transform:translateX(-50%) rotate(45deg);border-radius:2px}
+  .guide.noarrow::after{display:none}
+  @media(max-width:620px){.guide{white-space:normal;position:relative}.guide-wrap{height:auto;margin-bottom:12px}}
+  .guide-on{box-shadow:0 0 0 3px #fff,0 0 0 9px rgba(255,255,255,.30)!important;animation:glow 1.7s ease-in-out infinite}
+  @keyframes glow{50%{box-shadow:0 0 0 3px #fff,0 0 0 14px rgba(255,255,255,0)}}
+
+  /* "Como funciona" antes da primeira busca */
+  .welcome-title{font-size:13px;margin:24px 2px 12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+  .steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+  @media(max-width:820px){.steps{grid-template-columns:1fr}}
+  .step{--tc:var(--accent);background:linear-gradient(160deg,color-mix(in srgb,var(--tc) 13%,var(--surface)),var(--surface) 72%);border:1px solid color-mix(in srgb,var(--tc) 32%,var(--border));border-radius:16px;padding:18px 18px 20px;box-shadow:var(--shadow)}
+  .step .num{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--tc);color:#fff;font-family:var(--font-display);font-weight:700;margin-bottom:12px}
+  .step h3{font-size:16px;margin-bottom:6px}
+  .step p{margin:0;color:var(--muted);font-size:13.5px}
+  .quick{display:flex;flex-wrap:wrap;gap:10px}
+  .qbtn{border:1px solid var(--border);background:var(--surface);color:var(--fg);padding:10px 16px;border-radius:999px;font-weight:600;font-size:13px;cursor:pointer;box-shadow:var(--shadow);transition:transform .15s,border-color .15s,color .15s}
+  .qbtn:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-2px)}
+  .tipbox{margin-top:18px;background:var(--accent-soft);border-radius:14px;padding:14px 16px;font-size:13.5px}
+
+  /* indicadores coloridos */
+  .kpis .tile{position:relative;overflow:hidden}
+  .kpis .tile:nth-child(1){--tc:#6d5cff}
+  .kpis .tile:nth-child(2){--tc:#06b6d4}
+  .kpis .tile:nth-child(3){--tc:#10b981}
+  .kpis .tile .n{color:var(--tc)}
+  .kpis .tile .l .dot{background:var(--tc)}
+  .kpis .tile::after{content:"";position:absolute;right:-20px;top:-20px;width:80px;height:80px;border-radius:50%;background:color-mix(in srgb,var(--tc) 15%,transparent)}
+
+  /* cards com avatar colorido */
+  .av{flex:none;display:grid;place-items:center;width:38px;height:38px;border-radius:12px;color:#fff;font-family:var(--font-display);font-weight:700;font-size:13px}
+  .av.lg{width:54px;height:54px;border-radius:16px;font-size:19px}
+  .lead .top{align-items:center}
+  .lead{transition:transform .15s,box-shadow .15s,border-color .15s}
+  .lead:hover{transform:translateY(-2px);box-shadow:0 12px 28px color-mix(in srgb,var(--accent) 24%,transparent)}
+
+  /* menu lateral e janela */
+  .navbtn[aria-selected="true"]{background:var(--grad);color:#fff;box-shadow:0 6px 16px color-mix(in srgb,var(--accent) 35%,transparent)}
+  .navbtn[aria-selected="true"] .count{background:rgba(255,255,255,.28);color:#fff}
+  .modal::before{content:"";display:block;height:5px;background:var(--grad)}
+
+  .brand-sub{font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--muted);background:var(--surface-2);padding:2px 6px;border-radius:5px;margin-left:2px}
+  .hist-wrap{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-top:10px}
+  .hist-label{font-size:12px;color:var(--muted-on-accent,rgba(255,255,255,.75))}
+  .hist-chip{font-size:12.5px;padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.3);cursor:pointer;font-weight:500}
+  .hist-chip:hover{background:rgba(255,255,255,.26)}
+  .empty-grid .fixrow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+  .notes-ta{width:100%;font:inherit;font-size:12.5px;border:1px solid var(--border);border-radius:8px;padding:7px 9px;background:var(--surface);color:var(--fg);resize:vertical;min-height:40px;margin-top:4px}
+  .followup-row{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:12px;color:var(--muted)}
+  .followup-row input[type=date]{font:inherit;font-size:12px;border:1px solid var(--border);border-radius:7px;padding:4px 7px;background:var(--surface);color:var(--fg)}
+  .fu-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--surface-2);color:var(--muted)}
+  .fu-badge.due{background:var(--crit-soft);color:var(--crit)}
+  .fu-badge.soon{background:var(--warn-soft);color:var(--warn)}
+  .saved-toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  .saved-toolbar select{font:inherit;font-size:13px;border:1px solid var(--border);border-radius:9px;padding:7px 10px;background:var(--surface);color:var(--fg)}
+  .opener-warn{font-size:12px;color:var(--warn);background:var(--warn-soft);border-radius:8px;padding:7px 10px;margin-top:8px}
+  .tpl-box{margin-top:10px}
+  .tpl-box textarea{width:100%;font:inherit;font-size:12.5px;border:1px solid var(--border);border-radius:9px;padding:9px 10px;background:var(--surface);color:var(--fg);resize:vertical;min-height:70px}
+  .tpl-hint{font-size:11.5px;color:var(--muted);margin:5px 0 0}
+  .help-body{max-width:640px}
+  .help-body h3{font-size:15px;margin:18px 0 6px}
+  .help-body h3:first-child{margin-top:0}
+  .help-body p,.help-body li{font-size:13.5px;color:var(--muted);line-height:1.6}
+  .help-body ul{padding-left:18px;margin:4px 0}
+  @media(max-width:620px){.hist-wrap{display:none}}
+  .selchk{position:absolute;top:12px;right:12px;width:20px;height:20px;z-index:2}
+  .selchk input{width:18px;height:18px;cursor:pointer;accent-color:var(--accent)}
+  .lead{position:relative}
+  .bulkbar{display:none;align-items:center;gap:10px;flex-wrap:wrap;background:var(--accent-soft);border:1px solid var(--accent);border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:13.5px}
+  .bulkbar.show{display:flex}
+  .bulkbar b{color:var(--accent)}
+  .bulkbar .sp{flex:1}
+  .queue-item{display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:11px;padding:11px 13px;margin-bottom:9px}
+  .queue-item .qi-main{flex:1;min-width:0}
+  .queue-item .qi-main b{display:block;font-size:14px}
+  .queue-item .qi-main small{color:var(--muted);display:block;font-size:12px;white-space:pre-wrap;line-height:1.4;max-height:3.6em;overflow:hidden}
+  .queue-item.done{opacity:.55}
+  .queue-item .qi-status{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--surface-2);color:var(--muted);flex:none}
+  .queue-item .qi-status.sent{background:var(--good-soft);color:var(--good)}
+  .queue-item .qi-status.skip{background:var(--crit-soft);color:var(--crit)}
+  .queue-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+  .queue-head select{font:inherit;font-size:13px;border:1px solid var(--border);border-radius:9px;padding:7px 10px;background:var(--surface);color:var(--fg)}
+  .queue-progress{height:6px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin-bottom:14px}
+  .queue-progress .bar{height:100%;background:var(--accent);transition:width .25s}
+  .noskip{font-size:12.5px;color:var(--muted);margin:10px 0 0}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+</head>
+<body>
+
+<!-- ======================= TELA DE LOGIN ======================= -->
+<div id="authScreen" class="auth" hidden>
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="logo" style="width:46px;height:46px"></div>
+      <h1>Faro B2B</h1>
+      <p>Ache clientes, veja o que falta no digital de cada um e receba a mensagem de abordagem pronta.</p>
+      <ul>
+        <li><span class="c">◎</span> Busca de empresas por nicho e cidade</li>
+        <li><span class="c">◍</span> Diagnóstico automático da presença digital</li>
+        <li><span class="c">✎</span> Mensagem de WhatsApp escrita pela IA</li>
+        <li><span class="c">★</span> Seus leads e funil salvos na sua conta</li>
+      </ul>
+    </div>
+    <form class="auth-form" id="authForm">
+      <h2 id="authTitle">Entrar</h2>
+      <div class="field"><label for="authEmail">E-mail</label><input id="authEmail" type="email" autocomplete="email" required></div>
+      <div class="field"><label for="authPass">Senha</label><input id="authPass" type="password" autocomplete="current-password" required></div>
+      <p class="auth-err" id="authErr"></p>
+      <button class="btn block" id="authSubmit" type="submit">Entrar</button>
+      <p class="auth-switch">Não tem conta? <a id="authToggle">Criar conta</a></p>
+    </form>
+  </div>
+</div>
+
+<!-- ======================= APP ======================= -->
+<div id="appShell" class="shell" hidden>
+  <aside class="sidebar">
+    <div class="brand"><div class="logo"></div><b>Faro</b><span class="brand-sub">B2B</span></div>
+    <nav class="nav" role="tablist">
+      <button class="navbtn" role="tab" aria-selected="true" id="tab-buscar"><span class="ic">◎</span> Buscar</button>
+      <button class="navbtn" role="tab" aria-selected="false" id="tab-salvos"><span class="ic">★</span> Meus leads <span class="count" id="savedCount">0</span></button>
+    </nav>
+    <button class="btn ghost" id="helpBtn" style="justify-content:flex-start;margin-top:4px">? Ajuda / FAQ</button>
+    <div class="side-foot">
+      <button class="btn ghost" id="themeBtn" style="justify-content:flex-start">◐ Tema</button>
+      <div class="account" id="account"></div>
+    </div>
+  </aside>
+
+  <div class="content">
+    <main>
+      <!-- VIEW BUSCAR -->
+      <section id="view-buscar">
+        <div class="hero">
+          <h1>Ache clientes que precisam do seu serviço</h1>
+          <p>Escolha o ramo e o estado, clique em Buscar e receba a lista de empresas com a mensagem pronta pro WhatsApp.</p>
+          <div class="guide-wrap" id="guideWrap"><div class="guide" id="guide" hidden><span id="guideText"></span></div></div>
+          <div class="hero-search">
+            <div class="field">
+              <label for="niche"><span class="n">1</span>Ramo do cliente</label>
+              <select id="niche">
+                <option value="" disabled selected>Escolha o ramo…</option>
+                <option value="Todos os comércios">★ Todos os comércios (lojas variadas, aleatório)</option>
+                <option>Restaurante</option>
+                <option>Lanchonete</option>
+                <option>Pizzaria</option>
+                <option>Cafeteria</option>
+                <option>Bar</option>
+                <option>Padaria</option>
+                <option>Barbearia</option>
+                <option>Salão de beleza</option>
+                <option>Clínica de estética</option>
+                <option>Academia</option>
+                <option>Loja de roupas</option>
+                <option>Loja de calçados</option>
+                <option>Farmácia</option>
+                <option>Pet shop</option>
+                <option>Supermercado</option>
+                <option>Mercearia</option>
+                <option>Loja de móveis</option>
+                <option>Material de construção</option>
+                <option>Oficina mecânica</option>
+                <option>Auto peças</option>
+                <option>Lava-rápido</option>
+                <option>Imobiliária</option>
+                <option>Escritório de advocacia</option>
+                <option>Escritório de contabilidade</option>
+                <option>Clínica médica</option>
+                <option>Clínica odontológica</option>
+                <option>Óptica</option>
+                <option>Papelaria</option>
+                <option>Floricultura</option>
+                <option>Assistência técnica de celular</option>
+                <option>Loja de informática</option>
+                <option>Hotel</option>
+                <option>Pousada</option>
+                <option>Escola / curso</option>
+                <option>Loja de cosméticos</option>
+                <option>Joalheria</option>
+                <option>Loja de decoração</option>
+                <option>Estúdio de tatuagem</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="city"><span class="n">2</span>Estado</label>
+              <select id="city">
+                <option value="" disabled selected>Escolha o estado…</option>
+                <option>Acre</option>
+                <option>Alagoas</option>
+                <option>Amapá</option>
+                <option>Amazonas</option>
+                <option>Bahia</option>
+                <option>Ceará</option>
+                <option>Distrito Federal</option>
+                <option>Espírito Santo</option>
+                <option>Goiás</option>
+                <option>Maranhão</option>
+                <option>Mato Grosso</option>
+                <option>Mato Grosso do Sul</option>
+                <option>Minas Gerais</option>
+                <option>Pará</option>
+                <option>Paraíba</option>
+                <option>Paraná</option>
+                <option>Pernambuco</option>
+                <option>Piauí</option>
+                <option>Rio de Janeiro</option>
+                <option>Rio Grande do Norte</option>
+                <option>Rio Grande do Sul</option>
+                <option>Rondônia</option>
+                <option>Roraima</option>
+                <option>Santa Catarina</option>
+                <option>São Paulo</option>
+                <option>Sergipe</option>
+                <option>Tocantins</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="limit">Quantos resultados</label>
+              <select id="limit">
+                <option value="10">10</option>
+                <option value="20" selected>20</option>
+                <option value="30">30</option>
+                <option value="50">50</option>
+                <option value="80">80</option>
+              </select>
+            </div>
+            <button class="btn" id="searchBtn" disabled><span class="n">3</span>Buscar clientes</button>
+          </div>
+          <div class="hist-wrap" id="histWrap" hidden><span class="hist-label">Recentes:</span></div>
+          <div class="hero-filters">
+            <div class="field">
+              <label for="fltSite">Oferecer</label>
+              <select id="fltSite">
+                <option value="nosite" selected>Criação de site (só empresas sem site)</option>
+                <option value="all">Todas as empresas</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="fltPhone">Telefone</label>
+              <select id="fltPhone">
+                <option value="valid" selected>Só com formato de telefone válido</option>
+                <option value="mobile">Só celulares (formato válido)</option>
+                <option value="backed">Só confirmados pela empresa ou em 2+ fontes (mais confiável)</option>
+                <option value="any">Qualquer (inclui inválidos e sem telefone)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Antes da primeira busca: explica como usar e oferece exemplos prontos -->
+        <div id="welcome">
+          <h2 class="welcome-title">Como funciona</h2>
+          <div class="steps">
+            <div class="step" style="--tc:#6d5cff"><span class="num">1</span><h3>Escolha o ramo e o estado</h3><p>Por exemplo: barbearias em Minas Gerais. Use os campos lá em cima.</p></div>
+            <div class="step" style="--tc:#06b6d4"><span class="num">2</span><h3>Veja quem precisa de você</h3><p>A lista mostra as empresas, o que falta no digital delas e o telefone pra contato.</p></div>
+            <div class="step" style="--tc:#10b981"><span class="num">3</span><h3>Mande a mensagem pronta</h3><p>Clique numa empresa: o texto já vem escrito. Confira o contato e abra a conversa.</p></div>
+          </div>
+          <h2 class="welcome-title">Ou comece por um exemplo</h2>
+          <div class="quick" id="quick">
+            <button class="qbtn" data-niche="Barbearia" data-state="Minas Gerais">Barbearias · Minas Gerais</button>
+            <button class="qbtn" data-niche="Clínica de estética" data-state="São Paulo">Clínicas de estética · São Paulo</button>
+            <button class="qbtn" data-niche="Restaurante" data-state="Rio de Janeiro">Restaurantes · Rio de Janeiro</button>
+            <button class="qbtn" data-niche="Pet shop" data-state="Paraná">Pet shops · Paraná</button>
+            <button class="qbtn" data-niche="Todos os comércios" data-state="Bahia">★ Lojas variadas · Bahia</button>
+          </div>
+          <details class="phexplain"><summary>Como o Faro classifica os telefones</summary><ul>
+            <li><b>Confirmado pela empresa:</b> o número aparece no site da própria empresa.</li>
+            <li><b>Formato válido:</b> DDD e dígitos de um número brasileiro de verdade. Não prova que está ativo, que é da empresa nem que tem WhatsApp.</li>
+            <li><b>Não verificado:</b> formato ok, mas com alerta (ex.: DDD de outro estado).</li>
+            <li><b>Inválido:</b> formato impossível (DDD inexistente, tamanho errado, dígitos repetidos).</li>
+            <li><b>2+ fontes:</b> bases públicas trazem o mesmo número. Ajuda, mas bases copiam umas das outras: não é confirmação.</li>
+            <li>O Faro <b>não envia mensagens</b> nem testa se o número tem WhatsApp. Abrir o link do WhatsApp não prova nada.</li></ul></details>
+          <div class="tipbox"><b>Dica:</b> <span>quer vender site? Deixe <b>"Oferecer: Criação de site"</b> marcado nos filtros: o Faro mostra só empresas que não têm site cadastrado.</span></div>
+        </div>
+
+        <div id="results" hidden>
+        <div class="note" id="demoNote">
+          <div id="noteBody">Carregando…</div>
+          <button class="x" id="closeNote" aria-label="Fechar aviso">×</button>
+        </div>
+
+        <div class="kpis">
+          <div class="tile"><div class="n mono" id="kpiFound">0</div><div class="l"><span class="dot"></span>Empresas encontradas</div></div>
+          <div class="tile"><div class="n mono" id="kpiHot">0</div><div class="l"><span class="dot"></span>Com celular de formato válido</div></div>
+          <div class="tile saved"><div class="n mono" id="kpiSaved">0</div><div class="l"><span class="dot"></span>Leads salvos</div></div>
+        </div>
+
+        <details class="phexplain"><summary>Como o Faro classifica os telefones</summary><ul>
+          <li><b>Confirmado pela empresa:</b> o número aparece no site da própria empresa.</li>
+          <li><b>Formato válido:</b> DDD e dígitos de um número brasileiro de verdade. Não prova que está ativo, que é da empresa nem que tem WhatsApp.</li>
+          <li><b>Não verificado:</b> formato ok, mas com alerta (ex.: DDD de outro estado).</li>
+          <li><b>Inválido:</b> formato impossível (DDD inexistente, tamanho errado, dígitos repetidos).</li>
+          <li><b>2+ fontes:</b> bases públicas trazem o mesmo número. Ajuda, mas bases copiam umas das outras: não é confirmação.</li>
+          <li>O Faro <b>não envia mensagens</b> nem testa se o número tem WhatsApp. Abrir o link do WhatsApp não prova nada.</li></ul></details>
+        <div class="toolbar">
+          <p class="result-count" id="resultCount"></p>
+          <button class="btn ghost" id="exportBtn" hidden>⬇ Exportar CSV</button>
+          <button class="btn ghost" id="contactsBtn" hidden></button>
+        </div>
+
+        <div class="bulkbar" id="bulkbar">
+          <span><b id="bulkCount">0</b> selecionadas</span>
+          <button class="btn ghost mini" id="bulkSelAll">Selecionar com celular válido</button>
+          <button class="btn ghost mini" id="bulkClear">Limpar seleção</button>
+          <span class="sp"></span>
+          <button class="btn wpp mini" id="bulkWa">✆ Fila de WhatsApp</button>
+          <button class="btn ghost mini" id="bulkMail" hidden>✉ E-mail em massa</button>
+        </div>
+        <div class="grid" id="list"></div>
+        </div><!-- /results -->
+
+        <div class="overlay" id="overlay" hidden>
+          <div class="modal" role="dialog" aria-modal="true" aria-label="Detalhes da empresa">
+            <button class="modal-x" id="modalClose" aria-label="Fechar">×</button>
+            <div class="panel" id="panel"></div>
+          </div>
+        </div>
+
+        <details class="arch">
+          <summary>Arquitetura e LGPD</summary>
+          <div class="body">
+            <p><b>1. Empresas → Google Places API.</b> Endpoint oficial <code>places:searchText</code> (nada de raspar o Maps).</p>
+            <p><b>2. Enriquecimento.</b> Para cada empresa com site, o back-end lê o próprio site (links de Instagram e WhatsApp) e roda o <code>PageSpeed Insights</code> (desempenho no celular). Só vira "gap" o que foi verificado.</p>
+            <p><b>3. Abordagem → API da Claude.</b> O diagnóstico vira o contexto e a IA escreve a mensagem.</p>
+            <p><b>4. Login + banco → Supabase.</b> Seus leads e o funil ficam na sua conta, protegidos por Row Level Security.</p>
+            <p><b>5. LGPD e WhatsApp.</b> Dado comercial público, base legal registrada (legítimo interesse B2B), identificação na 1ª mensagem, saída fácil e sem disparo em massa.</p>
+          </div>
+        </details>
+      </section>
+
+      <!-- VIEW SALVOS -->
+      <section id="view-salvos" hidden>
+        <h2 class="page-title">Meus leads</h2>
+        <div class="saved-toolbar" id="savedToolbar" hidden>
+          <select id="savedFltStage" aria-label="Filtrar por etapa">
+            <option value="">Todas as etapas</option>
+            <option value="novo">Novo</option>
+            <option value="contatado">Contatado</option>
+            <option value="respondeu">Respondeu</option>
+            <option value="fechado">Fechado</option>
+          </select>
+          <select id="savedFltNiche" aria-label="Filtrar por nicho"><option value="">Todos os nichos</option></select>
+          <button class="btn ghost" id="savedExportBtn" style="margin-left:auto">⬇ Exportar CSV</button>
+        </div>
+        <div id="savedWrap"></div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- ======================= AJUDA / FAQ ======================= -->
+<div class="overlay" id="helpOverlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-label="Ajuda e perguntas frequentes">
+    <button class="modal-x" id="helpClose" aria-label="Fechar">×</button>
+    <div class="panel help-body">
+      <h2>Ajuda / Perguntas frequentes</h2>
+      <h3>O que é o Faro?</h3>
+      <p>Uma ferramenta de prospecção B2B: você escolhe um ramo e um estado, o Faro busca empresas em bases públicas, mostra o que falta na presença digital de cada uma e escreve uma mensagem de abordagem pronta.</p>
+      <h3>O site usa inteligência artificial?</h3>
+      <p>Só em uma parte: a mensagem de abordagem pode ser escrita por um modelo de IA (quando configurado). A <b>busca das empresas não usa IA</b> — vem de bases de dados comerciais (TomTom, Foursquare, HERE) consultadas por nicho e estado. Sem IA configurada, o Faro usa mensagens prontas e continua funcionando normalmente.</p>
+      <h3>De onde vêm os dados?</h3>
+      <p>De APIs públicas/comerciais de localização (TomTom, Foursquare, HERE e, quando disponível, Google Places), além de leitura do próprio site da empresa quando ela tem um. Nenhum dado é inventado: quando uma informação não existe nas fontes, o Faro mostra isso claramente em vez de supor.</p>
+      <h3>Os telefones são confirmados?</h3>
+      <p>Nem sempre. Cada número tem um status: <b>confirmado pela empresa</b> (achado no site dela), <b>formato válido</b> (número real, mas não confirmado), <b>não verificado</b> (com algum alerta) ou <b>inválido</b>. O Faro nunca afirma que um número tem WhatsApp sem essa confirmação. Veja mais em "Como o Faro classifica os telefones" na tela de busca.</p>
+      <h3>Meus dados ficam salvos onde?</h3>
+      <p>Sem login, os leads salvos ficam só no seu navegador (modo local). Com login (Supabase), ficam na sua conta, protegidos por regras de acesso do banco — só você vê os seus leads.</p>
+      <h3>Encontrei um dado errado, o que fazer?</h3>
+      <p>Dentro de cada empresa, no bloco de telefone, tem um botão "Reportar dado incorreto" que copia um resumo pra você revisar ou guardar. O Faro não corrige dados automaticamente: cadastros públicos mudam com o tempo.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ======================= FILA DE ENVIO: WHATSAPP (semi-automática) ======================= -->
+<div class="overlay" id="waQueueOverlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-label="Fila de envio por WhatsApp">
+    <button class="modal-x" id="waQueueClose" aria-label="Fechar">×</button>
+    <div class="panel">
+      <h2>Fila de WhatsApp</h2>
+      <p class="hint" style="margin-bottom:14px">O Faro <b>não manda nada sozinho</b>: ele abre cada conversa já preenchida, uma de cada vez, e você confere e aperta Enviar no próprio WhatsApp. Isso evita bloqueio do seu número e deixa você no controle de cada mensagem.</p>
+      <div class="queue-head">
+        <span>Intervalo entre aberturas:</span>
+        <select id="waQueueDelay">
+          <option value="0">Manual (eu que abro cada uma)</option>
+          <option value="8000" selected>8 segundos</option>
+          <option value="15000">15 segundos</option>
+          <option value="30000">30 segundos</option>
+        </select>
+      </div>
+      <div class="queue-progress"><div class="bar" id="waQueueBar" style="width:0%"></div></div>
+      <div class="msg-actions"><button class="btn wpp" id="waNextBtn">Abrir próxima conversa</button></div>
+      <div id="waQueueList" style="margin-top:14px"></div>
+      <p class="noskip" id="waQueueSkipped"></p>
+    </div>
+  </div>
+</div>
+
+<!-- ======================= E-MAIL EM MASSA ======================= -->
+<div class="overlay" id="mailBulkOverlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-label="Enviar e-mail em massa">
+    <button class="modal-x" id="mailBulkClose" aria-label="Fechar">×</button>
+    <div class="panel">
+      <h2>E-mail em massa</h2>
+      <p class="hint" style="margin-bottom:14px" id="mailBulkIntro"></p>
+      <div id="mailBulkList"></div>
+      <div class="queue-progress" id="mailBulkProgWrap" hidden><div class="bar" id="mailBulkBar" style="width:0%"></div></div>
+      <div class="msg-actions">
+        <button class="btn" id="mailBulkSend">✉ Enviar para todos</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===========================================================================
+   Faro — front-end.
+   - Dados das empresas: /api/search + /api/enrich + /api/message (Express).
+   - Login e leads por usuário: Supabase (se /api/config trouxer as chaves).
+   - Sem back-end/Supabase, cai em "modo local" (demonstração + localStorage).
+   =========================================================================== */
+const API_BASE = "";
+let LIVE = false;       // dados reais de empresas vindos da API?
+let SOURCE = 'google';  // fonte principal dos dados
+let SOURCES = [];       // todas as fontes usadas na busca (google, foursquare, here, tomtom, osm)
+let SEARCH_ERR = '';    // motivo da falha da busca real (mostrado no aviso do modo demonstração)
+let MIXED = false;      // busca "Todos os comércios": mostra o ramo de cada empresa no card
+let MODE = "local";     // "local" (sem login) | "auth" (Supabase)
+let sb = null, user = null, booted = false;
+
+/* ---------- dados de demonstração (fallback) ---------- */
+const DATA = [
+  {id:'r1', niche:'Restaurante', name:'Cantina Bella Napoli', city:'Campinas-SP', phone:'(19) 99731-0145', rating:4.8, reviews:324, site:null, instaDays:4, ads:false, wppBtn:false},
+  {id:'r2', niche:'Restaurante', name:'Burger House Centro', city:'Campinas-SP', phone:'(19) 99812-7730', rating:4.2, reviews:151, site:{old:true,mobile:false}, instaDays:47, ads:false, wppBtn:true},
+  {id:'r3', niche:'Restaurante', name:'Sushi Zen', city:'Campinas-SP', phone:'(19) 99645-2210', rating:4.6, reviews:208, site:{old:false,mobile:true}, instaDays:3, ads:true, wppBtn:true},
+  {id:'r4', niche:'Restaurante', name:'Tempero da Vó', city:'Campinas-SP', phone:'(19) 99500-8841', rating:4.9, reviews:97, site:null, instaDays:null, ads:false, wppBtn:false},
+  {id:'e1', niche:'Clínica de estética', name:'Estética Renova', city:'Campinas-SP', phone:'(19) 99188-6620', rating:4.9, reviews:95, site:null, instaDays:null, ads:false, wppBtn:false},
+  {id:'e2', niche:'Clínica de estética', name:'Bella Pele Studio', city:'Campinas-SP', phone:'(19) 99277-4512', rating:4.3, reviews:62, site:{old:false,mobile:false}, instaDays:11, ads:false, wppBtn:true},
+  {id:'e3', niche:'Clínica de estética', name:'Glow Estética Avançada', city:'Campinas-SP', phone:'(19) 99904-3307', rating:4.7, reviews:183, site:{old:true,mobile:true}, instaDays:92, ads:false, wppBtn:false},
+];
+function computeGaps(b){
+  // Diagnóstico do modo demonstração. Mesmas peças de mensagem do src/audit.js:
+  // pain completa "notei que ___", impact é frase completa, solution completa
+  // "posso ajudar a ___" e service completa "trabalho com ___".
+  const g=[];
+  if(!b.site){
+    g.push({sev:'crit', title:'Não tem site próprio', offer:'Criação de site',
+      desc:'Sem uma página própria, a empresa perde visibilidade nas buscas do Google.',
+      pain:'a empresa ainda não tem um site próprio',
+      impact:'Hoje, a maioria dos clientes procura no Google antes de decidir, e quem não tem um site acaba perdendo essa oportunidade para a concorrência.',
+      solution:'desenvolver um site profissional, rápido e pensado para transformar visitas em contatos',
+      service:'criação de sites'});
+  } else {
+    if(!b.site.mobile) g.push({sev:'crit', title:'Site não se adapta ao celular', offer:'Site responsivo',
+      desc:'A maioria das buscas vem do celular, e um site que não se adapta perde a venda.',
+      pain:'o site de vocês não funciona bem no celular',
+      impact:'Como a maior parte das visitas vem do celular, isso costuma afastar clientes antes mesmo do primeiro contato.',
+      solution:'deixar o site rápido e bem adaptado ao celular',
+      service:'otimização de sites'});
+    if(b.site.old) g.push({sev:'warn', title:'Site com visual desatualizado', offer:'Redesign',
+      desc:'Um layout antigo transmite menos credibilidade do que o atendimento real da empresa.',
+      pain:'o visual do site de vocês está desatualizado',
+      impact:'Um design contemporâneo transmite mais confiança e valoriza a qualidade do serviço de vocês.',
+      solution:'dar ao site uma aparência mais atual, pensada para gerar contatos',
+      service:'redesign de sites'});
+  }
+  if(b.instaDays===null) g.push({sev:'crit', title:'Sem perfil no Instagram', offer:'Gestão de redes',
+    desc:'O Instagram costuma ser a primeira referência do cliente antes de decidir.',
+    pain:'a empresa ainda não tem um perfil ativo no Instagram',
+    impact:'É lá que muitos clientes conhecem a empresa antes de decidir.',
+    solution:'estruturar a presença da empresa nessa rede com uma rotina de conteúdo consistente',
+    service:'gestão de redes sociais'});
+  else if(b.instaDays>30) g.push({sev:'warn', title:`Instagram sem publicações há ${b.instaDays} dias`, offer:'Gestão de redes',
+    desc:'Um perfil sem publicações recentes passa a impressão de que a empresa está inativa.',
+    pain:`o Instagram de vocês está sem publicações há ${b.instaDays} dias`,
+    impact:'Uma conta sem atualizações pode passar a impressão de que a empresa está inativa.',
+    solution:'reativar o perfil com uma rotina de conteúdo consistente',
+    service:'gestão de redes sociais'});
+  if(!b.ads) g.push({sev:'warn', title:'Não investe em tráfego pago', offer:'Tráfego pago',
+    desc:'Sem anúncios, quem decide pela busca tende a escolher o concorrente.',
+    pain:'a empresa não aparece em anúncios no Google nem nas redes sociais',
+    impact:'Com campanhas bem direcionadas, a empresa passa a ser vista por quem já procura pelo serviço.',
+    solution:'estruturar uma divulgação paga focada em clientes da região',
+    service:'gestão de tráfego pago'});
+  if(!b.wppBtn) g.push({sev:'warn', title:'Sem botão de WhatsApp profissional', offer:'Automação de atendimento',
+    desc:'Cada passo a mais até o atendimento aumenta a desistência do cliente.',
+    pain:'o site de vocês não tem um botão de WhatsApp',
+    impact:'Quanto mais simples for o caminho até o primeiro contato, maior a chance de o visitante se tornar cliente.',
+    solution:'integrar o WhatsApp ao site para que os clientes falem com vocês em um clique',
+    service:'automação de atendimento'});
+  g.sort((a,b)=> (a.sev==='crit'?0:1)-(b.sev==='crit'?0:1));
+  return g;
+}
+
+function heatFromGaps(b){
+  const g=b.gaps||[]; const crit=g.filter(x=>x.sev==='crit').length; const rating=b.rating;
+  // sem nota (dados do OpenStreetMap): quente = gap crítico + telefone para contato
+  if(rating==null ? (crit>=1 && b.phone) : (rating>=4.5 && crit>=1)) return {k:'hot',label:'Quente'};
+  if(g.length>=2) return {k:'warm',label:'Morno'};
+  if(g.length===0) return {k:'cold',label:'Frio'};
+  return {k:'warm',label:'Morno'};
+}
+const heatRank={hot:0,warm:1,cold:2};
+
+/* ---------- redação das mensagens de abordagem ----------
+   As frases são montadas com peças que já vêm gramaticalmente prontas (pain, impact,
+   solution, service), em vez de colar fragmentos soltos. Cuidamos de artigo e preposição
+   ("a Barbearia", "o Burger House", "na Bahia", "em Minas Gerais"), da pessoa verbal
+   ("posso" x "podemos", conforme a apresentação) e de variar o texto entre empresas. */
+const normTxt=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
+const NICHE_PLURAL={
+  'restaurante':'restaurantes','lanchonete':'lanchonetes','pizzaria':'pizzarias','cafeteria':'cafeterias','bar':'bares',
+  'padaria':'padarias','barbearia':'barbearias','salao de beleza':'salões de beleza','clinica de estetica':'clínicas de estética',
+  'academia':'academias','loja de roupas':'lojas de roupas','loja de calcados':'lojas de calçados','farmacia':'farmácias',
+  'pet shop':'pet shops','supermercado':'supermercados','mercearia':'mercearias','loja de moveis':'lojas de móveis',
+  'material de construcao':'lojas de material de construção','oficina mecanica':'oficinas mecânicas','auto pecas':'lojas de autopeças',
+  'lava-rapido':'lava-rápidos','imobiliaria':'imobiliárias','escritorio de advocacia':'escritórios de advocacia',
+  'escritorio de contabilidade':'escritórios de contabilidade','clinica medica':'clínicas médicas','clinica odontologica':'clínicas odontológicas',
+  'optica':'ópticas','papelaria':'papelarias','floricultura':'floriculturas','assistencia tecnica de celular':'assistências técnicas de celular',
+  'loja de informatica':'lojas de informática','hotel':'hotéis','pousada':'pousadas','escola / curso':'escolas e cursos',
+  'loja de cosmeticos':'lojas de cosméticos','joalheria':'joalherias','loja de decoracao':'lojas de decoração','estudio de tatuagem':'estúdios de tatuagem',
+};
+// gênero pelo primeiro nome da empresa; se não der pra saber, pelo ramo ("o restaurante", "a loja")
+const MASC_START=new Set(['bar','boteco','botequim','restaurante','studio','estudio','salao','mercado','mercadinho','supermercado','hipermercado',
+  'minimercado','atacadao','atacarejo','emporio','armazem','acougue','cafe','posto','hotel','hostel','motel','escritorio','consultorio','centro',
+  'instituto','espaco','atelie','atelier','colegio','curso','grupo','laboratorio','buffet','bistro','quiosque','deposito','ponto','recanto',
+  'cantinho','clube','pet','petshop','lava-jato','lava-rapido','lavajato','autocenter','shopping','sacolao','varejao','hortifruti','spa','sushi',
+  'burger','box','bazar','salao','estacionamento','lar','condominio','residencial','studios','dr','dr.','doutor']);
+const FEM_START=new Set(['loja','casa','clinica','padaria','pizzaria','barbearia','lanchonete','farmacia','drogaria','otica','optica','academia',
+  'imobiliaria','mercearia','papelaria','floricultura','joalheria','pousada','escola','oficina','distribuidora','confeitaria','sorveteria',
+  'hamburgueria','cervejaria','choperia','doceria','adega','boutique','estetica','assistencia','agencia','panificadora','rotisseria','tabacaria',
+  'vidracaria','serralheria','marcenaria','lavanderia','cantina','churrascaria','petiscaria','pastelaria','livraria','perfumaria','relojoaria',
+  'borracharia','funilaria','autoescola','auto','dra','dra.','doutora']);
+const MASC_NICHE=new Set(['restaurante','bar','salao de beleza','pet shop','supermercado','lava-rapido','escritorio de advocacia',
+  'escritorio de contabilidade','hotel','estudio de tatuagem']);
+function companyRef(b){
+  let nome=String(b.name||'').trim();
+  const lead=nome.match(/^(os|as|o|a)\s+/i);           // "A Casa do Pão" -> "da Casa do Pão"
+  if(lead){
+    nome=nome.slice(lead[0].length);
+    const art=lead[1].toLowerCase();
+    return {a:art, da:'d'+art, na:'n'+art, nome};
+  }
+  const first=normTxt(nome.split(/\s+/)[0]).replace(/[^a-z.-]/g,'');
+  const masc=MASC_START.has(first)?true:FEM_START.has(first)?false:MASC_NICHE.has(normTxt(b.niche));
+  return masc?{a:'o',da:'do',na:'no',nome}:{a:'a',da:'da',na:'na',nome};
+}
+// preposição certa para o estado (ou cidade): "na Bahia", "no Paraná", "em Minas Gerais"
+const PLACE_PREP={bahia:'na',paraiba:'na',acre:'no',amapa:'no',amazonas:'no',ceara:'no','distrito federal':'no','espirito santo':'no',
+  maranhao:'no','mato grosso':'no','mato grosso do sul':'no',para:'no',parana:'no',piaui:'no','rio de janeiro':'no',
+  'rio grande do norte':'no','rio grande do sul':'no',tocantins:'no'};
+function placeName(city){ return String(city||'').split(/[-,]/)[0].trim(); }
+function localPhrase(city){ const l=placeName(city); return l?`${PLACE_PREP[normTxt(l)]||'em'} ${l}`:''; }
+function personName(s){
+  const t=String(s||'').trim().replace(/\s+/g,' ');
+  if(!t) return '[seu nome]';
+  return t.split(' ').map((w,i)=>{
+    if(i>0&&/^(de|da|do|das|dos|e)$/i.test(w)) return w.toLowerCase();
+    const base=(w.length>2&&w===w.toUpperCase())?w.toLowerCase():w;   // "GUSTAVO" -> "Gustavo"
+    return base.charAt(0).toUpperCase()+base.slice(1);
+  }).join(' ');
+}
+// "somos uma equipe de 3 pessoas" -> "Somos uma equipe de três pessoas."
+const NUM_WORDS={3:'três',4:'quatro',5:'cinco',6:'seis',7:'sete',8:'oito',9:'nove',10:'dez'};
+const DEFAULT_ABOUT='Somos uma equipe de três profissionais especializada em criação de sites';
+function aboutSentence(s){
+  let t=String(s||'').trim().replace(/^["'“”(\[]+|["'“”)\]]+$/g,'').replace(/\s+/g,' ').trim();
+  if(!t) return '';
+  t=t.replace(/\b(10|[3-9])\b(?=\s+[a-zà-ú])/gi,n=>NUM_WORDS[n]);
+  t=t.charAt(0).toUpperCase()+t.slice(1);
+  return /[.!?]$/.test(t)?t:t+'.';
+}
+// a apresentação fala em equipe? Então a mensagem inteira vai na 1ª pessoa do plural.
+const aboutText=()=>aboutSentence((uiPrefs.about||'').trim()||DEFAULT_ABOUT); // apresentação sempre presente
+const isTeamVoice=s=>/\b(somos|nós|nossa|nosso|trabalhamos|fazemos|atuamos|ajudamos|equipe|time|agência|agencia|estúdio|estudio)\b/i.test(String(s||''));
+function voiceOf(team){
+  return team
+    ? {posso:'podemos',Posso:'Podemos',Trabalho:'Trabalhamos',costumo:'costumamos',enviar:'te enviarmos',envie:'te enviemos'}
+    : {posso:'posso',Posso:'Posso',Trabalho:'Trabalho',costumo:'costumo',enviar:'eu te enviar',envie:'eu te envie'};
+}
+// só elogiamos a nota quando ela é boa e tem avaliações suficientes pra significar algo
+function reputationOf(b){
+  if(b.rating==null||!(Number(b.reviews)>=5)||Number(b.rating)<4) return null;
+  return {adj:Number(b.rating)>=4.5?'excelente':'ótima', nota:Number(b.rating).toFixed(1).replace('.',','),
+    n:Number(b.reviews).toLocaleString('pt-BR')};
+}
+// gaps antigos (cache) podem vir sem as peças novas: completa com o mínimo seguro
+function gapParts(top){
+  return {pain:top.pain||'', impact:top.impact||'', solution:top.solution||'resolver isso de forma simples',
+    service:top.service||String(top.offer||'').toLowerCase()};
+}
+const SERVICE_KEYS=['site','rede','social','trafego','anuncio','atendimento','marketing'];
+function aboutCovers(about,service){
+  const a=normTxt(about), sv=normTxt(service); if(!a||!sv) return false;
+  return a.includes(sv)||SERVICE_KEYS.some(k=>sv.includes(k)&&a.includes(k));
+}
+function hashStr(s){let h=0;for(const c of String(s))h=(h*31+c.charCodeAt(0))>>>0;return h;}
+// cada empresa começa numa variação diferente; "Gerar outra versão" avança para a próxima
+const pickVariant=(list,b)=>list[(hashStr(b.id||b.name)+(b._variant||0))%list.length];
+const sentences=(...xs)=>xs.filter(Boolean).join(' ');
+const paragraphs=(...xs)=>xs.filter(Boolean).join('\n\n');
+function emailSubject(b){ const r=companyRef(b); return `Uma sugestão para ${r.a} ${r.nome}`; }
+
+const TONES={consultivo:'Consultivo',direto:'Direto',curto:'Curto',modelo:'Meu modelo'};
+/* "Meu modelo": texto que o próprio vendedor escreve uma vez, com placeholders, e reaproveita em todo lead. */
+const TPL_PLACEHOLDERS=['empresa','cidade','nicho','motivo','oferta','nome','sobre'];
+function fillTemplate(tpl,b,g){
+  const top=g[0];
+  const vals={
+    empresa:b.name||'', cidade:placeName(b.city), nicho:(b.niche||'').toLowerCase(),
+    motivo:top?top.pain:'a presença digital de vocês está bem estruturada',
+    oferta:top?gapParts(top).service:'marketing digital',
+    nome:personName(uiPrefs.sellerName),
+    sobre:aboutText(),
+  };
+  return TPL_PLACEHOLDERS.reduce((t,k)=>t.replaceAll(`{${k}}`,vals[k]),tpl);
+}
+function buildMessage(b,tone){
+  const g=b.gaps||[];
+  if(tone==='modelo'){
+    const tpl=(uiPrefs.customTemplate||'').trim();
+    if(!tpl) return 'Escreva o seu modelo no campo acima usando {empresa}, {cidade}, {nicho}, {motivo}, {oferta}, {nome} e {sobre}. Ele será preenchido automaticamente para cada empresa e ficará salvo para as próximas buscas.';
+    return fillTemplate(tpl,b,g);
+  }
+  const ref=companyRef(b), empresa=`${ref.a} ${ref.nome}`, daEmpresa=`${ref.da} ${ref.nome}`;
+  const local=localPhrase(b.city), plural=NICHE_PLURAL[normTxt(b.niche)]||null;
+  const head=sentences(`Meu nome é ${personName(uiPrefs.sellerName)}.`,aboutText());
+  const rep=reputationOf(b);
+  const sector=plural||'comércios';
+  const area=`${sector}${local?' '+local:' da região'}`;
+  const parabens=rep?`Aproveitamos para parabenizá-los pela ${rep.adj} reputação: nota ${rep.nota}, com ${rep.n} opiniões de clientes.`:'';
+  // fechamentos formais e cordiais, sem a pergunta "faz sentido…?"
+  const CLOSINGS=[
+    'Caso tenham interesse, teremos prazer em detalhar tudo em uma conversa breve, no horário que for mais conveniente para vocês.',
+    'Ficamos à disposição para apresentar os detalhes em uma conversa rápida, no melhor horário para vocês. Agradecemos desde já a atenção e aguardamos o seu retorno.',
+    'Será um prazer explicar tudo com mais detalhes, no momento que for mais oportuno para vocês. Aguardamos o seu contato.',
+  ];
+  const closing=pickVariant(CLOSINGS.map(c=>()=>c),{id:(b.id||b.name)+'c',_variant:b._variant})();
+
+  if(!g.length){
+    return paragraphs(`Olá, tudo bem? ${head}`,
+      sentences(`Estamos analisando a presença digital de ${area} e a presença digital ${daEmpresa} chamou a nossa atenção: está muito bem estruturada.`,parabens),
+      sentences('Trabalhamos com marketing digital e gostaríamos de apresentar ideias para ampliar ainda mais os resultados de vocês.',closing));
+  }
+
+  const p=gapParts(g[0]);
+  const noSite=/site próprio/.test(p.pain);
+  // abertura: explica de onde veio o contato (pesquisa de comércios da região) e o que não foi encontrado
+  const achado=noSite
+    ? `Estamos pesquisando ${area} para analisar a presença digital de cada empresa e, ao examinar ${empresa}, não encontramos um site próprio da empresa.`
+    : `Estamos pesquisando ${area} para analisar a presença digital de cada empresa e, ao examinar ${empresa}, notamos que ${p.pain}.`;
+  const VARIANTS={
+    consultivo:[
+      ()=>paragraphs(`Olá, tudo bem? ${head}`,
+        sentences(achado,parabens,p.impact),
+        sentences(`Por isso, gostaríamos de apresentar uma proposta para ${p.solution}.`,closing)),
+      ()=>paragraphs(`Olá, como vai? ${head}`,
+        sentences(achado,p.impact),
+        sentences(`Trabalhamos com ${p.service} e gostaríamos de apresentar uma proposta para ${p.solution}.`,parabens,closing)),
+    ],
+    direto:[
+      ()=>paragraphs(`Olá, tudo bem? ${head}`,
+        sentences(achado,`Gostaríamos de apresentar uma proposta para ${p.solution}.`,'Teriam disponibilidade para uma breve conversa esta semana?')),
+      ()=>paragraphs(`Olá, tudo bem? ${head}`,
+        sentences(achado,'Isso costuma custar clientes todos os dias.',`Temos uma proposta para ${p.solution} e ficaremos felizes em apresentá-la em uma breve conversa.`)),
+    ],
+    curto:[
+      ()=>paragraphs(`Olá, tudo bem? ${head}`,
+        sentences(achado,`Gostaríamos de apresentar uma proposta para ${p.solution}, em uma conversa breve.`)),
+      ()=>paragraphs(`Olá! ${head}`,
+        sentences(achado,`Temos uma proposta para ${p.solution}. Ficamos à disposição para apresentá-la.`)),
+    ],
+  };
+  return pickVariant(VARIANTS[tone]||VARIANTS.consultivo,b)();
+}
+
+/* ---------- preferências locais (nome do vendedor, tom, tema, aviso) ---------- */
+const HIST='radarb2b.history';
+let searchHistory=[];
+try{const s=localStorage.getItem(HIST); if(s) searchHistory=JSON.parse(s)||[];}catch(e){}
+function pushHistory(niche,city){
+  searchHistory=searchHistory.filter(h=>!(h.niche===niche&&h.city===city));
+  searchHistory.unshift({niche,city});
+  searchHistory=searchHistory.slice(0,6);
+  try{localStorage.setItem(HIST,JSON.stringify(searchHistory));}catch(e){}
+  renderHistory();
+}
+function renderHistory(){
+  const w=$('#histWrap'); if(!w) return;
+  if(!searchHistory.length){ w.hidden=true; return; }
+  w.hidden=false;
+  w.innerHTML='<span class="hist-label">Recentes:</span>'+searchHistory.map(h=>
+    `<button type="button" class="hist-chip" data-niche="${esc(h.niche)}" data-city="${esc(h.city)}">${esc(h.niche)} · ${esc(h.city)}</button>`).join('');
+}
+const PREFS='radarb2b.prefs';
+let uiPrefs={sellerName:'',tone:'consultivo',noteClosed:false};
+try{const s=localStorage.getItem(PREFS); if(s) uiPrefs=Object.assign(uiPrefs,JSON.parse(s));}catch(e){}
+function savePrefs(){try{localStorage.setItem(PREFS,JSON.stringify(uiPrefs));}catch(e){}}
+
+/* leads salvos em modo local (quando não há Supabase) */
+const NOTES_KEY='radarb2b.notes', FOLLOWUP_KEY='radarb2b.followup';
+let leadNotes={}, leadFollowup={};
+try{leadNotes=JSON.parse(localStorage.getItem(NOTES_KEY)||'{}')||{};}catch(e){}
+try{leadFollowup=JSON.parse(localStorage.getItem(FOLLOWUP_KEY)||'{}')||{};}catch(e){}
+const notesOf=id=>leadNotes[id]||'';
+const followupOf=id=>leadFollowup[id]||'';
+function setNote(id,v){ if(v) leadNotes[id]=v; else delete leadNotes[id]; try{localStorage.setItem(NOTES_KEY,JSON.stringify(leadNotes));}catch(e){} }
+function setFollowup(id,v){ if(v) leadFollowup[id]=v; else delete leadFollowup[id]; try{localStorage.setItem(FOLLOWUP_KEY,JSON.stringify(leadFollowup));}catch(e){} }
+function followupBadge(id){
+  const d=followupOf(id); if(!d) return '';
+  const diff=(new Date(d+'T00:00:00')-new Date(new Date().toDateString()))/86400000;
+  const cls=diff<0?'due':diff<=2?'soon':'';
+  const txt=new Date(d+'T00:00:00').toLocaleDateString('pt-BR');
+  return `<span class="fu-badge ${cls}">↻ ${diff<0?'atrasado':'follow-up'} ${txt}</span>`;
+}
+const LSAVED='radarb2b.saved';
+let localSaved={};
+try{const s=localStorage.getItem(LSAVED); if(s) localSaved=JSON.parse(s)||{};}catch(e){}
+function persistLocalSaved(){try{localStorage.setItem(LSAVED,JSON.stringify(localSaved));}catch(e){}}
+
+/* ---------- camada de armazenamento (local x Supabase) ---------- */
+const localStore = {
+  async list(){ return {...localSaved}; },
+  async save(l){ localSaved[l.placeId]=l; persistLocalSaved(); },
+  async setStage(id,s){ if(localSaved[id]){localSaved[id].stage=s;persistLocalSaved();} },
+  async remove(id){ delete localSaved[id]; persistLocalSaved(); },
+};
+const supaStore = {
+  async list(){
+    const {data,error}=await sb.from('leads').select('*').order('created_at',{ascending:false});
+    if(error) throw error;
+    const m={}; (data||[]).forEach(r=>{m[r.place_id]={placeId:r.place_id,name:r.name,phone:r.phone,niche:r.niche,city:r.city,stage:r.stage,message:r.message};});
+    return m;
+  },
+  async save(l){
+    const {error}=await sb.from('leads').upsert(
+      {user_id:user.id,place_id:l.placeId,name:l.name,phone:l.phone,niche:l.niche,city:l.city,stage:l.stage,message:l.message},
+      {onConflict:'user_id,place_id'});
+    if(error) throw error;
+  },
+  async setStage(id,s){ const {error}=await sb.from('leads').update({stage:s}).eq('place_id',id).eq('user_id',user.id); if(error) throw error; },
+  async remove(id){ const {error}=await sb.from('leads').delete().eq('place_id',id).eq('user_id',user.id); if(error) throw error; },
+};
+const storage = () => (MODE==='auth' && user) ? supaStore : localStore;
+
+/* ---------- estado ---------- */
+let results=[], selectedId=null, draft='', savedMap={};
+let selectedIds=new Set();   // seleção em massa (checkbox nos cards) p/ fila de WhatsApp / e-mail
+let bulkEmailOn=false;       // true quando o servidor tem um provedor de e-mail configurado
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const byId=id=>results.find(b=>b.id===id);
+function waLink(phone,text){let d=(phone||'').replace(/\D/g,'');if(d&&d.length<=11)d='55'+d;return `https://wa.me/${d}?text=${encodeURIComponent(text||'')}`;}
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2000);}
+function esc(s){return (s+'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+/* ---------- exportar CSV ---------- */
+function csvCell(v){ const s=String(v??''); return /[",\n;]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; }
+function downloadCsv(rows,filename){
+  const csv='\uFEFF'+rows.map(r=>r.map(csvCell).join(';')).join('\r\n'); // ; p/ abrir certo no Excel BR; BOM p/ acentos
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+}
+function exportResultsCsv(){
+  if(!results.length){ toast('Nenhuma empresa pra exportar'); return; }
+  const header=['Nome','Nicho','Cidade/Estado','Endereço','Telefone','Status do telefone','Origem do telefone','Fontes','Site','Avaliação','Nº avaliações'];
+  const rows=results.map(b=>{
+    const i=phoneInfoOf(b);
+    return [b.name,b.niche||'',b.city||'',b.address||'',phoneShown(b),(PH_STATUS[i.status]||PH_STATUS.none).label,
+      (i.sources||[]).map(x=>srcName(x.source)).join(', '),(b.sources||[]).map(srcName).join(', '),b.website||'',b.rating??'',b.reviews??''];
+  });
+  downloadCsv([header,...rows],`faro-${(results[0]?.niche||'busca').toLowerCase().replace(/\s+/g,'-')}.csv`);
+  toast(`${results.length} empresas exportadas`);
+}
+function exportSavedCsv(list){
+  if(!list.length){ toast('Nenhum lead salvo pra exportar'); return; }
+  const header=['Nome','Nicho','Cidade/Estado','Telefone','Etapa','Anotação','Follow-up'];
+  const rows=list.map(s=>[s.name,s.niche||'',s.city||'',s.phone||'',STAGE_LABEL[s.stage]||s.stage,notesOf(s.placeId),followupOf(s.placeId)||'']);
+  downloadCsv([header,...rows],'faro-meus-leads.csv');
+  toast(`${list.length} leads exportados`);
+}
+function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>rej(new Error('falha ao carregar '+src));document.head.appendChild(s);});}
+
+/* ---------- backend / auth ---------- */
+async function initBackend(){
+  let cfg={};
+  try{const r=await fetch(API_BASE+'/api/config');if(r.ok)cfg=await r.json();}catch(e){}
+  bulkEmailOn=Boolean(cfg.bulkEmail);
+  if(cfg.supabaseUrl && cfg.supabaseAnonKey){
+    try{
+      await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js');
+      sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);
+      MODE='auth';
+      sb.auth.onAuthStateChange((_e,session)=>onAuth(session));
+    }catch(e){ MODE='local'; }
+  }
+}
+
+async function onAuth(session){
+  user=session?.user||null;
+  renderAccount();
+  if(user){
+    $('#authScreen').hidden=true; $('#appShell').hidden=false;
+    if(!booted){ booted=true; await loadSaved(); initWelcome(); }
+  }else{
+    booted=false; $('#appShell').hidden=true; $('#authScreen').hidden=false; syncAuthUi();
+  }
+}
+
+let authMode='login';
+function syncAuthUi(){
+  $('#authTitle').textContent = authMode==='login'?'Entrar':'Criar conta';
+  $('#authSubmit').textContent = authMode==='login'?'Entrar':'Criar conta';
+  $('#authToggle').textContent = authMode==='login'?'Criar conta':'Já tenho conta';
+  $('#authForm').querySelector('.auth-switch').childNodes[0].nodeValue = authMode==='login'?'Não tem conta? ':'Já tem conta? ';
+}
+function traduzErro(m){
+  if(/invalid login/i.test(m)) return 'E-mail ou senha incorretos.';
+  if(/already registered|already exists/i.test(m)) return 'Esse e-mail já tem conta. Tente entrar.';
+  if(/password should be|at least 6/i.test(m)) return 'A senha precisa de pelo menos 6 caracteres.';
+  if(/email not confirmed/i.test(m)) return 'Confirme seu e-mail antes de entrar.';
+  return m;
+}
+async function handleAuthSubmit(e){
+  e.preventDefault();
+  if(!sb) return;
+  const email=$('#authEmail').value.trim(), pass=$('#authPass').value;
+  const err=$('#authErr'); err.textContent='';
+  const btn=$('#authSubmit'); const lbl=btn.textContent; btn.disabled=true; btn.textContent='…';
+  try{
+    const r = authMode==='login'
+      ? await sb.auth.signInWithPassword({email,password:pass})
+      : await sb.auth.signUp({email,password:pass});
+    if(r.error) throw r.error;
+    if(authMode==='signup' && !r.data.session){
+      err.style.color='var(--good)'; err.textContent='Conta criada! Se pedir confirmação, veja seu e-mail e depois entre.';
+      authMode='login'; syncAuthUi();
+    }
+    // com sessão, onAuth() cuida de abrir o app
+  }catch(ex){ err.style.color='var(--crit)'; err.textContent=traduzErro(ex.message||String(ex)); }
+  btn.disabled=false; btn.textContent=lbl;
+}
+function renderAccount(){
+  const el=$('#account'); if(!el) return;
+  if(MODE==='auth' && user){
+    const ini=(user.email||'?').trim()[0].toUpperCase();
+    el.innerHTML=`<div class="av">${esc(ini)}</div><div class="who"><b>${esc(user.email)}</b><button class="link-btn" id="logoutBtn">Sair</button></div>`;
+    $('#logoutBtn').onclick=async()=>{ try{await sb.auth.signOut();}catch(e){} };
+  }else{
+    el.innerHTML=`<div class="av">◍</div><div class="who"><b>Modo local</b><span>leads neste navegador</span></div>`;
+  }
+}
+
+/* ---------- leads salvos ---------- */
+async function loadSaved(){
+  try{ savedMap=await storage().list()||{}; }catch(e){ savedMap={}; }
+  renderSavedCount(); updateKpis();
+  if(!$('#view-salvos').hidden) renderSaved();
+}
+async function saveLead(b){
+  const lead={placeId:b.id,name:b.name,phone:b.phone||'',niche:b.niche||'',city:b.city||'',stage:savedMap[b.id]?.stage||'novo',message:draft};
+  try{ await storage().save(lead); savedMap[b.id]=lead; toast('Lead salvo em "Meus leads"'); }
+  catch(e){ toast('Não consegui salvar: '+(e.message||e)); }
+  renderSavedCount(); updateKpis();
+}
+async function changeStage(placeId,stage){
+  try{ await storage().setStage(placeId,stage); if(savedMap[placeId]) savedMap[placeId].stage=stage; }
+  catch(e){ toast('Erro ao atualizar etapa'); }
+  renderSaved();
+}
+async function removeSaved(placeId){
+  try{ await storage().remove(placeId); }catch(e){}
+  delete savedMap[placeId]; renderSaved(); renderSavedCount(); updateKpis();
+}
+function renderSavedCount(){ $('#savedCount').textContent=Object.keys(savedMap).length; }
+const SRC_NAMES={google:'Google',foursquare:'Foursquare',here:'HERE',tomtom:'TomTom',osm:'OpenStreetMap',site_da_empresa:'site da empresa'};
+const srcName=x=>SRC_NAMES[x]||x;
+const fmtDate=iso=>{try{return iso?new Date(iso).toLocaleDateString('pt-BR'):'';}catch(e){return '';}};
+const REASON_TXT={empty:'vazio',no_digits:'sem dígitos',has_letters:'contém letras',multiple_numbers:'vários números no mesmo campo',too_short:'curto demais',too_long:'longo demais',missing_ddd:'sem DDD',unknown_ddd:'DDD inexistente',repeated_digits:'dígitos repetidos',repeated_pattern:'padrão repetido',sequential_digits:'sequência de dígitos',mobile_must_start_with_9:'celular precisa começar com 9',legacy_mobile_without_9:'formato antigo de celular (sem o 9º dígito)',ddd_other_state:'DDD de outro estado'};
+const FLAG_TXT={
+  ddd_other_state:'O DDD é de outro estado: pode ser dado trocado ou desatualizado.',
+  phone_divergence:'As fontes trazem números diferentes para esta empresa. Mantivemos o de maior confiança e listamos os outros: nada foi trocado automaticamente.',
+  site_lists_other_numbers:'O site da empresa publica outros números, e o da base não aparece lá.',
+  site_confirms_other_state_ddd:'O site confirma o número, mas o DDD é de outro estado.',
+  service_number:'Número de serviço (0800 etc.): não atende por WhatsApp.'};
+const DATA_FLAG_TXT={website_divergence:'As fontes indicam sites diferentes.',address_divergence:'As fontes indicam endereços diferentes.'};
+const PH_STATUS={
+  business_confirmed:{cls:'ok',label:'Confirmado pela empresa',text:'Este número aparece no site da própria empresa. Ainda assim, isso não garante que o WhatsApp esteja ativo nele.'},
+  format_valid:{cls:'info',label:'Formato válido',text:'O formato é de um número brasileiro real, mas nada confirmou que ele está ativo, que é da empresa ou que tem WhatsApp. Veio de cadastros públicos, que podem estar desatualizados.'},
+  unverified:{cls:'mid',label:'Não verificado',text:'O formato está certo, mas há um sinal de alerta. Confira antes de usar.'},
+  invalid_format:{cls:'bad',label:'Número inválido',text:'O número tem formato impossível. Guardamos como veio na fonte, só para conferência.'},
+  none:{cls:'off',label:'Sem telefone',text:'Nenhuma fonte trouxe telefone para esta empresa.'}};
+const TYPE_TXT={mobile:'Celular',landline:'Fixo',service:'Serviço'};
+/* Ficha do telefone. Vem do servidor (phoneInfo). No modo demonstração e nos leads salvos NÃO há verificação nenhuma:
+   o número aparece como "não verificado" e nunca como confirmado. */
+function phoneInfoOf(b){
+  if(b.phoneInfo) return b.phoneInfo;
+  const raw=String(b.phone||'').trim();
+  if(!raw) return {status:'none',raw:'',national:'',type:null,flags:[],reasons:[],sources:[],evidence:[],alternatives:[],whatsapp:'whatsapp_unverified',demo:true};
+  return {status:'unverified',raw,national:raw,type:phoneKind(b),flags:[],reasons:[],sources:[],evidence:[],alternatives:[],whatsapp:'whatsapp_unverified',demo:true};
+}
+/* tipo de telefone com formato VÁLIDO ('mobile'|'landline'|null). Vem do servidor (phoneType). */
+function phoneKind(b){
+  if('phoneType' in b) return b.phoneType;
+  const d=String(b.phone||'').replace(/\D/g,''); const n=(d.length>=12&&d.startsWith('55'))?d.slice(2):d;
+  if(n.length===11&&n[2]==='9') return 'mobile';
+  if(n.length===10&&/[2-5]/.test(n[2])) return 'landline';
+  return null;
+}
+const PH_TIER=i=>i.status==='none'?6:i.status==='invalid_format'?5:i.status==='unverified'?4:i.status==='business_confirmed'?0:i.corroborated?1:i.type==='mobile'?2:3;
+function contactBadge(b){
+  const i=phoneInfoOf(b), m=PH_STATUS[i.status]||PH_STATUS.none;
+  const extra=(i.status==='format_valid'&&i.corroborated)?' · 2+ fontes':'';
+  const tip=i.demo&&i.status!=='none'?'Exemplo da demonstração, sem verificação':m.text;
+  return `<span class="badge ${m.cls}" title="${esc(tip)}">${esc(m.label+extra)}</span>`;
+}
+/* número exibido: formatado quando válido; senão como veio da fonte */
+const phoneShown=b=>{const i=phoneInfoOf(b);return i.national||i.raw||b.phone||'';};
+/* número que vai no link do WhatsApp: só celular de formato válido (sem alerta). Nunca "consertamos" números. */
+function waNumber(b){
+  const i=phoneInfoOf(b);
+  if(i.demo) return null;
+  return (i.type==='mobile'&&(i.status==='format_valid'||i.status==='business_confirmed'))?i.e164.replace(/\D/g,''):null;
+}
+function phoneOriginLine(b){
+  const i=phoneInfoOf(b); if(!i.sources||!i.sources.length) return '';
+  const names=[...new Set(i.sources.map(x=>srcName(x.source)))].join(' + ');
+  const d=fmtDate(i.lastCheckedAt);
+  return `<div class="src-line">Origem: ${esc(names)}${d?` · consultado em ${d}`:''}</div>`;
+}
+function phoneBlock(b){
+  const i=phoneInfoOf(b), m=PH_STATUS[i.status]||PH_STATUS.none;
+  if(i.status==='none') return `<div class="phbox"><div class="phhead"><b>Telefone</b> ${contactBadge(b)}</div><p class="phtext">${m.text} Você pode procurar o contato em fontes públicas abaixo.</p>
+    <div class="phrow"><a class="btn ghost mini" target="_blank" rel="noopener" href="${googleSearchUrl(b,'telefone')}">Procurar no Google ↗</a></div></div>`;
+  const type=i.type?TYPE_TXT[i.type]:'';
+  const why=(i.reasons||[]).map(r=>REASON_TXT[r]||r).join('; ');
+  const lis=[];
+  if(i.demo){
+    lis.push('<li><b>Exemplo da demonstração:</b> este número não passou por nenhuma verificação.</li>');
+  }else{
+    lis.push(`<li><b>Formato:</b> ${i.status==='invalid_format'?'inválido'+(why?` (${esc(why)})`:''):'checado (DDD, tamanho e dígitos)'+(i.status==='unverified'&&why?`, com alerta: ${esc(why)}`:'')}</li>`);
+    lis.push(`<li><b>Existência e titular:</b> não verificados${i.status==='business_confirmed'?' (apenas o site da empresa cita o número)':''}</li>`);
+    lis.push(`<li><b>WhatsApp:</b> ${i.whatsapp==='whatsapp_published'?'o site da empresa publica este número como WhatsApp':'não verificado'}</li>`);
+    if(i.sources&&i.sources.length){
+      lis.push('<li><b>Origem:</b> '+i.sources.map(x=>`${esc(srcName(x.source))}${x.raw&&x.raw!==i.raw?` (“${esc(x.raw)}”)`:''}${x.fetchedAt?`, consultado em ${fmtDate(x.fetchedAt)}`:''}`).join('; ')+'</li>');
+      lis.push(`<li><b>Última atualização na fonte:</b> ${i.sourceUpdatedAt?fmtDate(i.sourceUpdatedAt):'não informada pelas fontes'}</li>`);
+    }
+    (i.evidence||[]).forEach(e=>lis.push(`<li><b>Encontrado no site da empresa</b> em ${fmtDate(e.at)}${e.url?` (<a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.url)}</a>)`:''}</li>`));
+    if(i.corroborated) lis.push('<li><b>2+ fontes</b> trazem o mesmo número. Bases públicas copiam umas das outras, então isso não é confirmação.</li>');
+  }
+  const alerts=[...(i.flags||[]).map(f=>FLAG_TXT[f]).filter(Boolean),...(b.dataFlags||[]).map(f=>DATA_FLAG_TXT[f]).filter(Boolean)];
+  if(b.possibleDuplicates&&b.possibleDuplicates.length) alerts.push('Pode haver outro registro desta mesma empresa na lista (não juntamos por não ter certeza).');
+  const alts=(i.alternatives||[]).map(a=>`<li>${esc(a.national||a.raw)} <span class="mono" style="font-size:11px">${esc(PH_STATUS[a.status]?.label||'')}</span> · ${esc((a.sources||[]).map(x=>srcName(x.source)).join(', '))}
+    <button class="link-btn" data-copy-phone="${esc(a.national||a.raw)}">copiar</button></li>`).join('');
+  return `<div class="phbox">
+    <div class="phhead"><span class="phnum">${esc(i.national||i.raw)}</span>${type?`<span class="badge off">${type}</span>`:''}${contactBadge(b)}</div>
+    ${i.e164?`<div class="src-line mono">${esc(i.e164)}</div>`:''}
+    <p class="phtext">${esc(m.text)}</p>
+    <ul>${lis.join('')}</ul>
+    ${alerts.map(a=>`<div class="phalert">⚠ ${esc(a)}</div>`).join('')}
+    ${alts?`<div class="src-line" style="margin-top:10px">Outros números encontrados (não usados):</div><ul>${alts}</ul>`:''}
+    <div class="phrow">
+      <button class="btn ghost mini" data-copy-phone="${esc(i.e164||i.raw)}">⧉ Copiar número</button>
+      <a class="btn ghost mini" target="_blank" rel="noopener" href="${googleSearchUrl(b,'telefone')}">Conferir no Google ↗</a>
+      ${i.demo?'':`<button class="btn ghost mini" data-report="${esc(b.id)}">🚩 Reportar dado incorreto</button>`}
+    </div></div>`;
+}
+/* "Reportar dado incorreto": sem back-end pra isso ainda, então só monta um resumo e copia pro
+   vendedor colar onde quiser revisar depois (e-mail, bloco de notas...). */
+function reportText(b){
+  const i=phoneInfoOf(b);
+  return [
+    `Relatório Faro — possível dado incorreto`,
+    `Empresa: ${b.name}`, `Nicho: ${b.niche||''}`, `Cidade/Estado: ${b.city||''}`, `Endereço: ${b.address||''}`,
+    `Telefone mostrado: ${i.national||i.raw||'-'}  (status: ${(PH_STATUS[i.status]||PH_STATUS.none).label})`,
+    `Origem: ${(i.sources||[]).map(x=>srcName(x.source)).join(', ')||'-'}`,
+    `Site: ${b.website||'-'}`, `Fontes da busca: ${(b.sources||[]).map(srcName).join(', ')||'-'}`,
+    `Consultado em: ${fmtDate(i.lastCheckedAt)||'-'}`,
+  ].join('\n');
+}
+function waBlock(b,saved){
+  const n=saved?null:waNumber(b);
+  if(n){
+    const pub=phoneInfoOf(b).whatsapp==='whatsapp_published';
+    return `<a class="btn ${pub?'wpp':'ghost'}" id="wppBtn" href="${waLink(n,draft)}" target="_blank" rel="noopener">✆ ${pub?'Abrir WhatsApp da empresa':'Tentar no WhatsApp'}</a>`;
+  }
+  return '';
+}
+function waNote(b){
+  const i=phoneInfoOf(b);
+  if(waNumber(b)) return i.whatsapp==='whatsapp_published'
+    ? `<p class="wa-note">O site da empresa publica este número como WhatsApp. O Faro não envia nada: você revisa e envia.</p>`
+    : `<p class="wa-note"><b>Este número não foi confirmado como WhatsApp.</b> Abrir a conversa não prova que o número existe, está ativo ou é da empresa, e o Faro não consegue checar isso. Se o WhatsApp disser que o número não está no app, tente ligação, e-mail ou redes.</p>`;
+  if(i.status==='none') return `<p class="wa-note">Sem telefone nas fontes: sem botão de WhatsApp. Use e-mail, redes ou procure o contato nas fontes públicas.</p>`;
+  if(i.demo) return `<p class="wa-note">Empresa de exemplo (demonstração): sem verificação de contato.</p>`;
+  return `<p class="wa-note">Sem celular de formato válido e sem alerta: não mostramos botão de WhatsApp. Você ainda pode copiar o número e conferir por conta própria.</p>`;
+}
+function openModal(){ $('#overlay').hidden=false; document.body.style.overflow='hidden'; }
+function closeModal(){
+  const o=$('#overlay'); if(!o||o.hidden) return;
+  o.hidden=true; document.body.style.overflow=''; selectedId=null; renderList();
+}
+
+/* ---------- fila de WhatsApp (semi-automática: o Faro abre, você confere e manda) ---------- */
+let waQueue=[];
+function buildWaQueue(){
+  const chosen=[...selectedIds].map(byId).filter(Boolean);
+  const ready=chosen.filter(b=>waNumber(b));
+  const skipped=chosen.filter(b=>!waNumber(b));
+  waQueue=ready.map(b=>({id:b.id,name:b.name,number:waNumber(b),message:buildMessage(b,uiPrefs.tone),status:'pending'}));
+  return {skipped};
+}
+function waQueueRemaining(){ return waQueue.filter(q=>q.status==='pending').length; }
+function renderWaQueue(){
+  const done=waQueue.filter(q=>q.status!=='pending').length;
+  $('#waQueueBar').style.width=(waQueue.length?Math.round(done/waQueue.length*100):0)+'%';
+  $('#waQueueList').innerHTML=waQueue.map(q=>`
+    <div class="queue-item ${q.status!=='pending'?'done':''}">
+      <div class="qi-main"><b>${esc(q.name)}</b><small>${esc(q.message)}</small></div>
+      <span class="qi-status ${q.status==='sent'?'sent':q.status==='skipped'?'skip':''}">${q.status==='sent'?'aberta ✓':q.status==='skipped'?'pulada':'pendente'}</span>
+      ${q.status==='pending'?`<button class="btn ghost mini" data-wa-open="${esc(q.id)}">Abrir</button><button class="btn ghost mini" data-wa-skip="${esc(q.id)}">Pular</button>`:''}
+    </div>`).join('');
+  const btn=$('#waNextBtn');
+  if(btn){ const rest=waQueueRemaining(); btn.textContent=rest?`Abrir próxima conversa (${rest} restante${rest!==1?'s':''})`:'Fila concluída'; btn.disabled=!rest; }
+}
+function waOpenOne(id){
+  const q=waQueue.find(x=>x.id===id); if(!q||q.status!=='pending') return;
+  window.open(waLink(q.number,q.message),'_blank','noopener');
+  q.status='sent'; markOpenerUsed({name:q.name},q.message);
+  renderWaQueue();
+}
+let waCooldownTimer=null;
+function waOpenNext(){
+  const next=waQueue.find(q=>q.status==='pending'); if(!next) return;
+  waOpenOne(next.id);
+  const delay=Number($('#waQueueDelay').value)||0;
+  const btn=$('#waNextBtn');
+  if(delay && waQueueRemaining()){
+    btn.disabled=true; let left=Math.ceil(delay/1000);
+    const base=btn.textContent;
+    clearInterval(waCooldownTimer);
+    waCooldownTimer=setInterval(()=>{
+      left--; btn.textContent=`Aguarde ${left}s…`;
+      if(left<=0){ clearInterval(waCooldownTimer); renderWaQueue(); }
+    },1000);
+  }
+}
+function openWaQueue(){
+  if(!selectedIds.size){ toast('Selecione pelo menos uma empresa'); return; }
+  const {skipped}=buildWaQueue();
+  if(!waQueue.length){ toast('Nenhuma selecionada tem celular de formato válido'); return; }
+  $('#waQueueSkipped').textContent=skipped.length?`${skipped.length} empresa${skipped.length!==1?'s':''} sem celular de formato válido ficou(aram) de fora: ${skipped.map(b=>b.name).join(', ')}.`:'';
+  renderWaQueue();
+  $('#waQueueOverlay').hidden=false; document.body.style.overflow='hidden';
+}
+function closeWaQueue(){ $('#waQueueOverlay').hidden=true; document.body.style.overflow=''; clearInterval(waCooldownTimer); }
+
+/* ---------- e-mail em massa ---------- */
+function buildMailBulkList(){
+  const chosen=[...selectedIds].map(byId).filter(Boolean);
+  const ready=chosen.filter(b=>b.contacts?.emails?.length);
+  return ready.map(b=>({id:b.id,name:b.name,to:b.contacts.emails[0],subject:emailSubject(b),text:buildMessage(b,uiPrefs.tone),status:'pending'}));
+}
+let mailQueue=[];
+function renderMailBulk(){
+  $('#mailBulkIntro').textContent=`${mailQueue.length} empresa${mailQueue.length!==1?'s':''} com e-mail encontrado entre as selecionadas. O Faro manda pela sua conta de e-mail configurada; cada envio volta com o próprio resultado.`;
+  $('#mailBulkList').innerHTML=mailQueue.map(q=>`
+    <div class="queue-item ${q.status!=='pending'?'done':''}">
+      <div class="qi-main"><b>${esc(q.name)}</b><small>${esc(q.to)} — ${esc(q.text)}</small></div>
+      <span class="qi-status ${q.status==='sent'?'sent':q.status==='failed'?'skip':''}">${q.status==='sent'?'enviado ✓':q.status==='failed'?'falhou':'pendente'}</span>
+    </div>`).join('');
+}
+function openMailBulk(){
+  if(!selectedIds.size){ toast('Selecione pelo menos uma empresa'); return; }
+  mailQueue=buildMailBulkList();
+  if(!mailQueue.length){ toast('Nenhuma selecionada tem e-mail encontrado'); return; }
+  renderMailBulk();
+  $('#mailBulkProgWrap').hidden=true; $('#mailBulkBar').style.width='0%';
+  $('#mailBulkSend').disabled=false; $('#mailBulkSend').textContent='✉ Enviar para todos';
+  $('#mailBulkOverlay').hidden=false; document.body.style.overflow='hidden';
+}
+function closeMailBulk(){ $('#mailBulkOverlay').hidden=true; document.body.style.overflow=''; }
+async function sendMailBulk(){
+  const btn=$('#mailBulkSend'); btn.disabled=true; btn.textContent='Enviando…';
+  $('#mailBulkProgWrap').hidden=false;
+  try{
+    const r=await fetch(API_BASE+'/api/bulk-send-email',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({items:mailQueue.map(({id,...rest})=>rest)})});
+    if(!r.ok){ const j=await r.json().catch(()=>({})); throw new Error(j.error||('HTTP '+r.status)); }
+    const d=await r.json();
+    mailQueue.forEach((q,i)=>{ const res=d.results[i]; q.status=res?.ok?'sent':'failed'; if(res?.ok) markOpenerUsed({name:q.name},q.text); });
+    $('#mailBulkBar').style.width='100%';
+    renderMailBulk();
+    toast(`${d.sent} enviado${d.sent!==1?'s':''}, ${d.failed} falhou(aram)`);
+    btn.textContent='Concluído';
+  }catch(e){ toast('Erro ao enviar: '+(e.message||e)); btn.disabled=false; btn.textContent='✉ Enviar para todos'; }
+}
+function updateKpis(){
+  $('#kpiFound').textContent=results.length;
+  $('#kpiHot').textContent=results.filter(x=>phoneKind(x)==='mobile').length;
+  $('#kpiSaved').textContent=Object.keys(savedMap).length;
+}
+
+/* ---------- avatar colorido (iniciais) ---------- */
+const AV_COLORS=[['#6d5cff','#9333ea'],['#06b6d4','#3b82f6'],['#10b981','#059669'],['#f59e0b','#ef4444'],['#ec4899','#8b5cf6'],['#0ea5e9','#6366f1']];
+function avatar(b,large){
+  const nome=String(b.name||'?').trim();
+  const palavras=nome.split(/\s+/).filter(w=>/[A-Za-zÀ-ÿ0-9]/.test(w));
+  const ini=((palavras[0]||'?')[0]+(palavras[1]?palavras[1][0]:'')).toUpperCase();
+  let h=0; for(const c of nome) h=(h*31+c.charCodeAt(0))>>>0;
+  const [a,c]=AV_COLORS[h%AV_COLORS.length];
+  return `<span class="av${large?' lg':''}" style="background:linear-gradient(135deg,${a},${c})" aria-hidden="true">${esc(ini)}</span>`;
+}
+
+/* ---------- guia de primeiros passos: mostra onde clicar ---------- */
+let searched=false;   // já houve uma busca nesta visita?
+function updateGuide(){
+  const guide=$('#guide'); if(!guide) return;
+  const niche=$('#niche'), city=$('#city'), btn=$('#searchBtn');
+  [niche,city,btn].forEach(el=>el.classList.remove('guide-on'));
+  btn.disabled=!(niche.value && city.value);
+  if(searched){ guide.hidden=true; return; }
+  let alvo, texto;
+  if(!niche.value){ alvo=niche; texto='Comece aqui: escolha o ramo do cliente'; }
+  else if(!city.value){ alvo=city; texto='Agora escolha o estado'; }
+  else { alvo=btn; texto='Tudo pronto! Clique em Buscar clientes'; }
+  alvo.classList.add('guide-on');
+  $('#guideText').textContent=texto;
+  guide.hidden=false;
+  positionGuide(alvo);
+}
+function positionGuide(alvo){
+  const wrap=$('#guideWrap'), guide=$('#guide');
+  if(window.innerWidth<=620){ guide.classList.add('noarrow'); guide.style.left=''; return; }
+  guide.classList.remove('noarrow');
+  const w=wrap.getBoundingClientRect(), t=alvo.getBoundingClientRect();
+  const centro=t.left-w.left+t.width/2, gw=guide.offsetWidth;
+  const left=Math.max(0,Math.min(centro-gw/2,w.width-gw));
+  guide.style.left=left+'px';
+  guide.style.setProperty('--ax',(centro-left)+'px');
+}
+function initWelcome(){
+  // devolve o que a pessoa escolheu da última vez (mas NÃO busca sozinho)
+  const tem=(sel,v)=>v && [...sel.options].some(o=>o.value===v);
+  if(tem($('#niche'),uiPrefs.lastNiche)) $('#niche').value=uiPrefs.lastNiche;
+  if(tem($('#city'),uiPrefs.lastState)) $('#city').value=uiPrefs.lastState;
+  updateGuide();
+}
+
+/* ---------- busca ---------- */
+async function runSearch(){
+  const niche=$('#niche').value, city=$('#city').value.trim(), max=Number($('#limit')?.value)||20;
+  const onlyNoSite=$('#fltSite').value==='nosite', phone=$('#fltPhone').value;
+  MIXED = niche==='Todos os comércios';
+  if(!niche||!city){ toast('Escolha o ramo e o estado para buscar'); updateGuide(); return; }
+  searched=true; uiPrefs.lastNiche=niche; uiPrefs.lastState=city; savePrefs();
+  selectedIds.clear(); // nova busca: a seleção em massa da busca anterior não faz mais sentido
+  $('#welcome').hidden=true; $('#results').hidden=false; updateGuide();
+  const loadMsgs=['Buscando…','Consultando bases de empresas…','Cruzando telefone, site e endereço…','Quase lá…'];
+  let li=0; $('#resultCount').textContent=loadMsgs[0];
+  const loadTimer=setInterval(()=>{ li=(li+1)%loadMsgs.length; $('#resultCount').textContent=loadMsgs[li]; },1600);
+  try{
+    const r=await fetch(API_BASE+'/api/search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({niche,city,max,onlyNoSite,phone})});
+    if(r.status===429){
+      // limite de pedidos: mantém a lista atual em vez de cair na demonstração
+      clearInterval(loadTimer);
+      toast('Muitas buscas seguidas. Aguarde um instante e tente de novo.');
+      $('#resultCount').textContent=results.length?`${results.length} empresas`:'';
+      return;
+    }
+    if(!r.ok){
+      let msg='HTTP '+r.status;
+      try{const j=await r.json(); if(j&&j.error) msg=String(j.error);}catch(_){}
+      throw new Error(msg);
+    }
+    const d=await r.json();
+    results=(d.results||[]).map(b=>({...b,gaps:b.gaps||[],
+      // e-mail e redes que as próprias fontes já trouxeram (HERE, Foursquare)
+      contacts:((b.emails&&b.emails.length)||(b.social&&Object.keys(b.social).length))?{emails:b.emails||[],social:b.social||{},whatsappNumber:null}:undefined}));
+    LIVE=true; SOURCE=d.source||'google'; SOURCES=d.sources||[SOURCE]; SEARCH_ERR='';
+    pushHistory(niche,city);
+  }catch(e){
+    LIVE=false; SEARCH_ERR=String(e.message||e);
+    let base=(niche==='Todos os segmentos'||niche==='Todos os comércios')?DATA.slice():DATA.filter(b=>b.niche===niche);
+    if(onlyNoSite) base=base.filter(b=>!b.site);
+    if(phone==='mobile') base=base.filter(b=>phoneKind(b)==='mobile');
+    if(phone==='backed') base=[];   // a demonstração não tem nenhuma verificação de contato
+    results=base.map(b=>({...b,gaps:computeGaps(b)}));
+  }
+  // contato mais confiável primeiro; dentro disso, mais oportunidades
+  clearInterval(loadTimer);
+  if(!MIXED) results.sort((a,b)=>PH_TIER(phoneInfoOf(a))-PH_TIER(phoneInfoOf(b)) || (b.gaps.length-a.gaps.length) || (b.rating||0)-(a.rating||0));
+  selectedId=null; $('#overlay').hidden=true; document.body.style.overflow='';
+  updateBanner(); updateKpis(); renderList(); updateContactsBtn();
+  $('#exportBtn').hidden=!results.length;
+}
+function updateBanner(){
+  const body=$('#noteBody'); if(!body) return;
+  if(LIVE){
+    const NAMES={google:'Google',foursquare:'Foursquare',here:'HERE',tomtom:'TomTom',osm:'OpenStreetMap'};
+    const lista=(SOURCES&&SOURCES.length?SOURCES:[SOURCE]).map(s=>NAMES[s]||s).join(' + ');
+    const temNota=results.some(b=>b.rating!=null);
+    const fonte=`empresas de ${lista} (${temNota?'nota de avaliações quando a fonte tem':'sem nota de avaliações'}; telefone e site só quando cadastrados)`;
+    body.innerHTML=`<span class="mode live"><span class="d"></span>Dados reais</span> — ${fonte}. Clique numa empresa para ver o diagnóstico e a abordagem.`;
+  }else{
+    const motivo = SEARCH_ERR ? ` Motivo: ${esc(SEARCH_ERR.slice(0,420))}` : '';
+    body.innerHTML=`<span class="mode demo"><span class="d"></span>Modo demonstração</span> — empresas de exemplo (a busca real não respondeu).${motivo}`;
+  }
+}
+
+/* ---------- seleção em massa + fila de envio ---------- */
+function updateBulkBar(){
+  const bar=$('#bulkbar'); const n=selectedIds.size;
+  bar.classList.toggle('show', results.length>0); // fica visível sempre que há resultado, pra dar pra descobrir "selecionar"
+  $('#bulkCount').textContent=n;
+  const withMail=[...selectedIds].map(byId).filter(Boolean).some(b=>b.contacts?.emails?.length);
+  $('#bulkMail').hidden=!(bulkEmailOn && withMail);
+  $('#bulkWa').disabled=n===0; $('#bulkMail').disabled=n===0;
+}
+function toggleSelect(id,on){
+  if(on===undefined) on=!selectedIds.has(id);
+  if(on) selectedIds.add(id); else selectedIds.delete(id);
+  updateBulkBar();
+}
+function renderList(){
+  $('#resultCount').textContent=results.length?`${results.length} empresas · contato mais confiável primeiro`:'';
+  if(!results.length){
+    $('#list').innerHTML=`<div class="empty-grid"><b>Nenhuma empresa com esses filtros.</b><br>Tente outro nicho, aumente "Resultados", ou afrouxe os filtros abaixo.
+      <div class="fixrow">
+        <button class="btn ghost mini" id="fixSite">Oferecer: Todas as empresas</button>
+        <button class="btn ghost mini" id="fixPhone">Telefone: Qualquer</button>
+      </div></div>`;
+    $('#fixSite')?.addEventListener('click',()=>{$('#fltSite').value='all';runSearch();});
+    $('#fixPhone')?.addEventListener('click',()=>{$('#fltPhone').value='any';runSearch();});
+    return;
+  }
+  selectedIds=new Set([...selectedIds].filter(id=>results.some(b=>b.id===id))); // tira seleção de empresas que saíram da lista
+  $('#list').innerHTML=results.map(b=>{
+    const g=b.gaps||[];
+    const chips = g.length
+      ? g.slice(0,2).map(x=>`<span class="chip ${x.sev==='crit'?'bad':'mid'}"><span class="dot"></span>${esc(x.title)}</span>`).join('') + (g.length>2?`<span class="chip mid">+${g.length-2}</span>`:'')
+      : `<span class="chip ok"><span class="dot"></span>Tudo ok</span>`;
+    const nota=b.rating!=null?Number(b.rating).toFixed(1)+'★':'—';
+    return `<button class="lead" data-id="${esc(b.id)}" aria-current="${b.id===selectedId}">
+      <span class="selchk"><input type="checkbox" data-select="${esc(b.id)}" aria-label="Selecionar ${esc(b.name)}" ${selectedIds.has(b.id)?'checked':''}></span>
+      <div class="top">${avatar(b)}<h3>${esc(b.name)}</h3>${contactBadge(b)}</div>
+      ${MIXED&&b.niche?`<div class="cat">${esc(b.niche)}</div>`:''}
+      <div class="meta">${b.rating!=null?`<span class="mono">${nota}</span><span>${b.reviews||0} aval.</span>`:''}${b.phone?`<span class="mono">${esc(phoneShown(b))}</span>`:`<span>sem telefone cadastrado</span>`}</div>
+      ${phoneOriginLine(b)}
+      ${b.address?`<div class="addr">${esc(b.address)}</div>`:''}
+      <div class="chips">${chips}</div>
+      ${contactChips(b)}
+      <div class="more">Ver detalhes e abordagem →</div>
+    </button>`;
+  }).join('');
+  updateBulkBar();
+}
+
+async function selectLead(id){
+  selectedId=id; const b=byId(id); renderList();
+  if(!b){closeModal();return;}
+  draft=buildMessage(b,uiPrefs.tone); renderPanel(); openModal();
+  if(LIVE){ await enrichSelected(b); if(uiPrefs.tone!=='modelo') await aiMessageFor(b); }
+}
+/* ---------- contatos: e-mail, redes sociais, WhatsApp do site ---------- */
+const SOCIAL_NAMES={instagram:'Instagram',facebook:'Facebook',tiktok:'TikTok',linkedin:'LinkedIn',youtube:'YouTube'};
+function applyPhone(b,d){
+  if(!d||!d.phoneInfo) return;
+  b.phoneInfo=d.phoneInfo;
+  ['phoneOk','phoneType','phoneConfirmed'].forEach(k=>{ if(k in d) b[k]=d[k]; });
+}
+function applyContacts(b,en){
+  if(!en) return;
+  const old=b.contacts||{};   // mantém o que as fontes já trouxeram e soma o que o site da empresa tem
+  b.contacts={
+    emails:[...new Set([...(en.emails||[]),...(old.emails||[])])].slice(0,4),
+    social:{...(old.social||{}),...(en.social||{})},
+    whatsappNumber:en.whatsappNumber||old.whatsappNumber||null,
+  };
+}
+function googleSearchUrl(b,what){ return 'https://www.google.com/search?q='+encodeURIComponent(`${b.name} ${b.city||''} ${what}`.trim()); }
+function mailHref(b){
+  const to=b.contacts?.emails?.[0]; if(!to) return '#';
+  return `mailto:${to}?subject=${encodeURIComponent(emailSubject(b))}&body=${encodeURIComponent(draft||'')}`;
+}
+function contactChips(b){
+  const c=b.contacts; if(!c) return '';
+  const p=[];
+  if(c.emails&&c.emails.length) p.push('<span class="chip ok"><span class="dot"></span>E-mail</span>');
+  for(const k of Object.keys(SOCIAL_NAMES)) if(c.social&&c.social[k]) p.push(`<span class="chip ok"><span class="dot"></span>${SOCIAL_NAMES[k]}</span>`);
+  return p.length?`<div class="chips">${p.join('')}</div>`:'';
+}
+function contactsHtml(b){
+  const c=b.contacts||{}, emails=c.emails||[], social=c.social||{};
+  const links=Object.keys(SOCIAL_NAMES).filter(k=>social[k]).map(k=>`<a class="mini" href="${esc(social[k])}" target="_blank" rel="noopener">${SOCIAL_NAMES[k]}</a>`);
+  if(c.whatsappNumber) links.unshift(`<a class="mini" href="https://wa.me/${esc(c.whatsappNumber)}" target="_blank" rel="noopener">WhatsApp do site</a>`);
+  const rows=[];
+  if(emails.length) rows.push(`<div class="crow"><span class="clabel">E-mail</span><div class="cval">${emails.map(e=>`<div class="erow"><span class="mono">${esc(e)}</span><button class="mini" data-copy="${esc(e)}">Copiar</button></div>`).join('')}</div></div>`);
+  if(links.length) rows.push(`<div class="crow"><span class="clabel">Redes</span><div class="cval wrap">${links.join('')}</div></div>`);
+  let note='';
+  if(!rows.length){
+    note = !b.website ? 'Sem site cadastrado, então não há onde ler e-mail ou redes automaticamente.'
+         : !b._contacts ? 'Lendo o site para achar e-mail e redes…'
+         : 'Nenhum e-mail ou rede social encontrado no site.';
+  }
+  const g=(what,label)=>`<a class="mini" href="${googleSearchUrl(b,what)}" target="_blank" rel="noopener">${label}</a>`;
+  // link oficial do Google Maps (sem chave): abre a página da loja, onde o telefone costuma estar atual
+  const mapsUrl='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(`${b.name} ${b.address||b.city||''}`.trim());
+  return `<div class="sec-title">Contatos</div>
+    <div class="contacts">
+      ${rows.join('')}
+      ${note?`<div class="hint" style="margin:0">${note}</div>`:''}
+      <div class="crow"><span class="clabel">Conferir no Google</span><div class="cval wrap"><a class="mini" href="${esc(mapsUrl)}" target="_blank" rel="noopener">📍 Ver no Maps (telefone atual)</a>${g('instagram','Instagram')}${g('facebook','Facebook')}${g('e-mail contato','E-mail')}</div></div>
+      ${emails.length?`<div class="hint" style="margin:0">E-mail público do site da empresa. Use só em abordagem comercial relevante e ofereça um jeito de sair da lista.</div>`:''}
+    </div>`;
+}
+function updateContactsBtn(){
+  const btn=$('#contactsBtn'); if(!btn) return;
+  const n=results.filter(b=>b.website && !b._contacts).length;
+  btn.hidden=!(LIVE && n>0);
+  btn.textContent=`✉ Procurar e-mail e redes (${n} site${n!==1?'s':''})`;
+}
+/* varre os sites da lista (3 por vez, sem PageSpeed) atrás de e-mail e redes */
+async function findContactsAll(){
+  const btn=$('#contactsBtn');
+  const queue=results.filter(b=>b.website && !b._contacts);
+  const total=queue.length; if(!total) return;
+  btn.disabled=true; let done=0;
+  const step=()=>{ btn.textContent=`Procurando… ${done}/${total}`; };
+  step();
+  const worker=async()=>{
+    while(queue.length){
+      const b=queue.shift();
+      try{
+        const r=await fetch(API_BASE+'/api/enrich',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({biz:b,light:true})});
+        if(r.ok){ const d=await r.json(); applyContacts(b,d.enrichment); applyPhone(b,d); if(!b._enriched && Array.isArray(d.gaps)) b.gaps=d.gaps; b._contacts=true; }
+      }catch(e){}
+      done++; step(); renderList();
+    }
+  };
+  await Promise.all([worker(),worker(),worker()]);
+  btn.disabled=false; updateContactsBtn(); renderList();
+  const n=results.filter(b=>b.contacts&&b.contacts.emails&&b.contacts.emails.length).length;
+  toast(`${n} empresa${n!==1?'s':''} com e-mail encontrado`);
+}
+
+async function enrichSelected(b){
+  if(b._enriched) return;
+  b._enriching=true; if(selectedId===b.id) renderPanel();
+  try{
+    const r=await fetch(API_BASE+'/api/enrich',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({biz:b})});
+    if(r.ok){const d=await r.json(); if(Array.isArray(d.gaps)) b.gaps=d.gaps; b._enrichInfo=d.enrichment||null; applyContacts(b,d.enrichment); applyPhone(b,d); b._enriched=true; b._contacts=true;}
+  }catch(e){}
+  b._enriching=false;
+  if(selectedId===b.id){draft=buildMessage(b,uiPrefs.tone);renderPanel();}
+  renderList(); updateKpis();
+}
+async function aiMessageFor(b){
+  const btn=$('#regenBtn'); const prev=btn?btn.textContent:'';
+  if(btn){btn.disabled=true;btn.textContent='Gerando…';}
+  try{
+    const r=await fetch(API_BASE+'/api/message',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({biz:b,gaps:b.gaps,sellerName:uiPrefs.sellerName,about:aboutText(),tone:uiPrefs.tone})});
+    if(r.ok){const {message}=await r.json(); if(message){b._ai=true; if(selectedId===b.id){draft=message;renderPanel();}}}
+  }catch(e){}
+  const btn2=$('#regenBtn'); if(btn2){btn2.disabled=false;btn2.textContent=prev||'↻ Gerar outra versão';}
+}
+
+function renderPanel(){
+  const p=$('#panel'); const b=byId(selectedId);
+  if(!b){p.innerHTML=`<div class="empty"><div class="big">◎</div><p>Selecione uma empresa para ver o diagnóstico e a mensagem de abordagem.</p></div>`;return;}
+  const g=b.gaps||[];
+  const auditHtml = g.length
+    ? `<div class="audit">${g.map(x=>`
+      <div class="gap ${x.sev}"><span class="sev"></span>
+        <div class="txt"><b>${esc(x.title)}</b>${x.desc?`<small>${esc(x.desc)}</small>`:''}</div>
+        <span class="offer">${esc(x.offer)}</span>
+      </div>`).join('')}</div>`
+    : `<div class="allgood">✓ Presença digital bem resolvida — melhor abordar por otimização/escala.</div>`;
+  let enrichNote='';
+  if(b._enriching) enrichNote=`<div class="enrich-note"><span class="spin"></span> Analisando o site (PageSpeed + links)…</div>`;
+  else if(b._enriched && b.website){
+    const ms=b._enrichInfo&&b._enrichInfo.mobileScore!=null?` · nota mobile ${Math.round(b._enrichInfo.mobileScore*100)}/100`:'';
+    enrichNote=`<div class="enrich-note">✓ Site analisado${ms}</div>`;
+  }
+  const nota=b.rating!=null?Number(b.rating).toFixed(1):'—';
+  const saved=!!savedMap[b.id];
+  p.innerHTML=`
+    <div class="ph-head">
+      ${avatar(b,true)}
+      <div style="flex:1;min-width:150px">
+        <h2>${esc(b.name)}</h2>
+        <div class="kv">
+          ${b.rating!=null?`<span><b class="mono">${nota}★</b> ${b.reviews||0} avaliações</span>`:''}
+          <span>${esc(b.niche||'')}${b.city?` · ${esc(b.city)}`:''}</span>
+        </div>
+        ${b.address?`<div class="hint">${esc(b.address)}</div>`:''}
+        ${(b.sources&&b.sources.length)?`<div class="hint">Fontes: ${esc(b.sources.map(s=>({google:'Google',foursquare:'Foursquare',here:'HERE',tomtom:'TomTom',osm:'OpenStreetMap'}[s]||s)).join(', '))}</div>`:''}
+      </div>
+    </div>
+    ${phoneBlock(b)}
+    ${contactsHtml(b)}
+    <div class="sec-title">Diagnóstico da presença digital</div>
+    ${auditHtml}
+    ${enrichNote}
+    <div class="sec-title">Mensagem de abordagem ${b._ai?'<span class="tag">IA</span>':''}</div>
+    <div class="namerow">
+      <div class="field"><label for="seller">Seu nome (assina a mensagem)</label>
+        <input id="seller" placeholder="ex.: João" value="${esc(uiPrefs.sellerName||'')}"></div>
+      <div class="field"><label for="about">Sua apresentação (vai em todas as mensagens)</label>
+        <input id="about" placeholder="${esc(DEFAULT_ABOUT)}" value="${esc(uiPrefs.about||DEFAULT_ABOUT)}"></div>
+    </div>
+    <div class="toneline" id="toneline">
+      ${Object.entries(TONES).map(([k,v])=>`<button class="tone" data-tone="${k}" aria-pressed="${uiPrefs.tone===k}">${v}</button>`).join('')}
+    </div>
+    ${uiPrefs.tone==='modelo'?`<div class="tpl-box">
+      <textarea id="tplEdit" aria-label="Meu modelo de mensagem" placeholder="Ex.: Olá, tudo bem? Meu nome é {nome}. {sobre} Estive analisando a presença digital da {empresa} e notei que {motivo}. Trabalho com {oferta}. Posso te enviar uma proposta?">${esc(uiPrefs.customTemplate||'')}</textarea>
+      <p class="tpl-hint">Use {empresa}, {cidade}, {nicho}, {motivo}, {oferta}, {nome} e {sobre}. Fica salvo no seu navegador e preenchido pra cada empresa.</p>
+    </div>`:''}
+    <div class="msgbox"><textarea id="msg" aria-label="Mensagem de abordagem">${esc(draft)}</textarea></div>
+    <div id="openerWarnBox">${openerWarningHtml(b)}</div>
+    <div class="msg-actions">
+      ${waBlock(b)}
+      ${b.contacts&&b.contacts.emails&&b.contacts.emails.length?`<a class="btn ghost" id="mailBtn" href="${esc(mailHref(b))}">✉ Enviar e-mail</a>`:''}
+      <button class="btn ghost" id="copyBtn">⧉ Copiar</button>
+      <button class="btn ghost" id="regenBtn">↻ Gerar outra versão</button>
+      <button class="btn" id="saveBtn">${saved?'✓ Salvo':'★ Salvar lead'}</button>
+    </div>
+    ${waNote(b)}`;
+  $('#seller').addEventListener('input',e=>{uiPrefs.sellerName=e.target.value;savePrefs();draft=buildMessage(byId(selectedId),uiPrefs.tone);const t=$('#msg');if(t)t.value=draft;updateWpp();});
+  $('#about').addEventListener('input',e=>{uiPrefs.about=e.target.value;savePrefs();draft=buildMessage(byId(selectedId),uiPrefs.tone);const t=$('#msg');if(t)t.value=draft;updateWpp();});
+  $('#msg').addEventListener('input',e=>{draft=e.target.value;updateWpp();refreshOpenerWarning();});
+  $('#toneline').addEventListener('click',e=>{
+    const t=e.target.closest('[data-tone]'); if(!t) return;
+    uiPrefs.tone=t.dataset.tone; savePrefs();
+    const lb=byId(selectedId); draft=buildMessage(lb,uiPrefs.tone); renderPanel();
+    if(LIVE && uiPrefs.tone!=='modelo') aiMessageFor(lb);
+  });
+  $('#tplEdit')?.addEventListener('input',e=>{uiPrefs.customTemplate=e.target.value;savePrefs();draft=buildMessage(byId(selectedId),'modelo');const t=$('#msg');if(t)t.value=draft;updateWpp();});
+  $('#copyBtn').addEventListener('click',()=>{copyMsg();markOpenerUsed(b,draft);refreshOpenerWarning();});
+  $('#wppBtn')?.addEventListener('click',()=>{markOpenerUsed(b,draft);});
+  $('#mailBtn')?.addEventListener('click',()=>{markOpenerUsed(b,draft);});
+  p.querySelectorAll('[data-copy]').forEach(btn=>btn.addEventListener('click',()=>{
+    const v=btn.dataset.copy;
+    if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(v).then(()=>toast('E-mail copiado')).catch(()=>toast('Copie manualmente: '+v));
+    else toast('Copie manualmente: '+v);
+  }));
+  p.querySelectorAll('[data-copy-phone]').forEach(btn=>btn.addEventListener('click',()=>{
+    const v=btn.dataset.copyPhone;
+    if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(v).then(()=>toast('Número copiado')).catch(()=>toast('Copie manualmente: '+v));
+    else toast('Copie manualmente: '+v);
+  }));
+  $('#regenBtn').addEventListener('click',regenerate);
+  p.querySelectorAll('[data-report]').forEach(btn=>btn.addEventListener('click',()=>{
+    const v=reportText(b);
+    if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(v).then(()=>toast('Relatório copiado — cole onde preferir revisar depois')).catch(()=>toast('Não consegui copiar'));
+    else toast('Não consegui copiar automaticamente');
+  }));
+  $('#saveBtn').addEventListener('click',async()=>{markOpenerUsed(b,draft);await saveLead(b);renderPanel();});
+}
+function regenerate(){
+  const b=byId(selectedId);if(!b)return;
+  b._variant=(b._variant||0)+1;   // próxima variação do texto (a IA, se configurada, substitui logo depois)
+  draft=buildMessage(b,uiPrefs.tone);const t=$('#msg');if(t)t.value=draft;updateWpp();refreshOpenerWarning();
+  document.querySelectorAll('#toneline .tone').forEach(x=>x.setAttribute('aria-pressed',x.dataset.tone===uiPrefs.tone));
+  if(uiPrefs.tone==='modelo') toast('Mensagem gerada a partir do seu modelo');
+  else if(LIVE) aiMessageFor(b);
+  else toast('Nova versão gerada');
+}
+/* ---------- abertura repetida: alerta se a mesma frase inicial já foi usada noutra empresa ---------- */
+let usedOpeners={}; // só nesta sessão do navegador (não precisa persistir): abertura -> nome da empresa
+/* A "abertura" é a primeira frase de abordagem de verdade: pula a saudação, o "Meu nome é…"
+   e a apresentação (iguais em toda mensagem) e troca o nome da empresa por um marcador,
+   para comparar a ESTRUTURA do texto entre empresas diferentes. */
+function openerKey(txt,b){
+  let t=String(txt||'');
+  if(b){ for(const n of [b.name,companyRef(b).nome]) if(n) t=t.split(n).join('{empresa}'); }
+  const about=aboutText();
+  const skip=x=>/^(olá|oi|bom dia|boa tarde|boa noite)\b/i.test(x)||/^(tudo bem|como vai)\b/i.test(x)||/^meu nome é\b/i.test(x)||(about&&x===about);
+  const first=t.split(/(?<=[.!?])\s+|\n+/).map(x=>x.trim()).filter(Boolean).find(x=>!skip(x))||'';
+  return first.toLowerCase().replace(/\s+/g,' ').slice(0,90);
+}
+function markOpenerUsed(b,text){
+  const k=openerKey(text,b); if(!k) return;
+  usedOpeners[k]=b.name;
+}
+function openerWarningHtml(b){
+  const k=openerKey(draft,b); const used=usedOpeners[k];
+  if(!used || used===b.name) return '';
+  return `<p class="opener-warn">⚠ Esta mensagem começa da mesma forma que a enviada para <b>${esc(used)}</b>. Clique em "Gerar outra versão" para variar o texto e evitar que pareça um envio em massa.</p>`;
+}
+function refreshOpenerWarning(){ const b=byId(selectedId); const el=$('#openerWarnBox'); if(b&&el) el.innerHTML=openerWarningHtml(b); }
+function updateWpp(){const b=byId(selectedId);const a=$('#wppBtn');if(a&&b){const n=waNumber(b);if(n)a.href=waLink(n,draft);}const m=$('#mailBtn');if(m&&b)m.href=mailHref(b);}
+function copyMsg(){
+  const text=draft;
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(()=>toast('Mensagem copiada')).catch(fallback);}else fallback();
+  function fallback(){const t=$('#msg');if(t){t.focus();t.select();try{document.execCommand('copy');toast('Mensagem copiada');}catch(e){toast('Selecione e copie');}}}
+}
+
+/* ---------- pipeline / salvos ---------- */
+const STAGES=['novo','contatado','respondeu','fechado'];
+const STAGE_LABEL={novo:'Novo',contatado:'Contatado',respondeu:'Respondeu',fechado:'Fechado'};
+/* Lead salvo guarda só o número bruto, sem status: nunca mostramos como confirmado. */
+function savedWa(s){
+  const d=String(s.phone||'').replace(/\D/g,''); const n=(d.length>=12&&d.startsWith('55'))?d.slice(2):d;
+  const mobile=n.length===11&&n[2]==='9'&&n[0]!=='0'&&n[1]!=='0';
+  return (mobile?`<a class="btn ghost" style="flex:1;padding:9px" title="Número não confirmado como WhatsApp" href="${waLink('55'+n,s.message)}" target="_blank" rel="noopener">✆ Tentar no WhatsApp</a>`:'')
+    +(s.phone?`<button class="btn ghost" style="flex:1;padding:9px" data-copy-phone="${esc(s.phone)}">⧉ Copiar número</button>`:'');
+}
+function renderSaved(){
+  const all=Object.values(savedMap);
+  $('#savedToolbar').hidden=!all.length;
+  if(all.length){
+    const nicheSel=$('#savedFltNiche'), cur=nicheSel.value;
+    const niches=[...new Set(all.map(s=>s.niche).filter(Boolean))].sort();
+    nicheSel.innerHTML='<option value="">Todos os nichos</option>'+niches.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+    if(niches.includes(cur)) nicheSel.value=cur;
+  }
+  const fStage=$('#savedFltStage')?.value||'', fNiche=$('#savedFltNiche')?.value||'';
+  const arr=all.filter(s=>(!fStage||s.stage===fStage)&&(!fNiche||s.niche===fNiche))
+    .sort((a,b)=>(STAGES.indexOf(a.stage))-(STAGES.indexOf(b.stage)));
+  const w=$('#savedWrap');
+  if(!all.length){w.innerHTML=`<div class="empty-saved"><div style="font-size:40px;opacity:.5">★</div><p>Nenhum lead salvo ainda.<br>Faça uma busca, abra uma empresa e clique em <b>Salvar lead</b>.</p></div>`;return;}
+  if(!arr.length){w.innerHTML=`<div class="empty-saved"><p>Nenhum lead com esse filtro.</p></div>`;return;}
+  w.innerHTML=`<div class="saved-grid">${arr.map(s=>`
+    <div class="scard">
+      <div class="row"><h3 style="flex:1">${esc(s.name)}</h3><span class="stage ${s.stage}">${STAGE_LABEL[s.stage]}</span></div>
+      <div class="meta mono" style="font-size:12px;color:var(--muted)">${esc(s.phone||'sem telefone')}${s.city?` · ${esc(s.city)}`:''}</div>
+      <div class="src-line">Contato não verificado: confira antes de usar.</div>
+      <select class="sel" data-stage="${esc(s.placeId)}" aria-label="Etapa do funil">
+        ${STAGES.map(st=>`<option value="${st}" ${st===s.stage?'selected':''}>${STAGE_LABEL[st]}</option>`).join('')}
+      </select>
+      <textarea class="notes-ta" data-notes="${esc(s.placeId)}" placeholder="Anotação (ex.: falei, disse que vai pensar)">${esc(notesOf(s.placeId))}</textarea>
+      <div class="followup-row">
+        <span style="white-space:nowrap">Retomar em</span> <input type="date" data-followup="${esc(s.placeId)}" value="${esc(followupOf(s.placeId))}">
+        ${followupBadge(s.placeId)}
+      </div>
+      <div class="row" style="gap:10px;margin-top:2px">
+        ${savedWa(s)}
+        <button class="link-btn" data-del="${esc(s.placeId)}">remover</button>
+      </div>
+    </div>`).join('')}</div>`;
+  w.querySelectorAll('[data-copy-phone]').forEach(btn=>btn.addEventListener('click',()=>{
+    const v=btn.dataset.copyPhone;
+    if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(v).then(()=>toast('Número copiado')).catch(()=>toast('Copie manualmente: '+v));
+    else toast('Copie manualmente: '+v);
+  }));
+  w.querySelectorAll('[data-stage]').forEach(sel=>sel.addEventListener('change',e=>changeStage(e.target.dataset.stage,e.target.value)));
+  w.querySelectorAll('[data-del]').forEach(btn=>btn.addEventListener('click',e=>removeSaved(e.target.dataset.del)));
+  w.querySelectorAll('[data-notes]').forEach(ta=>ta.addEventListener('change',e=>setNote(e.target.dataset.notes,e.target.value)));
+  w.querySelectorAll('[data-followup]').forEach(inp=>inp.addEventListener('change',e=>{setFollowup(e.target.dataset.followup,e.target.value);renderSaved();}));
+}
+
+/* ---------- navegação / listeners estáticos ---------- */
+function switchTab(which){
+  const buscar=which==='buscar';
+  $('#tab-buscar').setAttribute('aria-selected',buscar);
+  $('#tab-salvos').setAttribute('aria-selected',!buscar);
+  $('#view-buscar').hidden=!buscar;
+  $('#view-salvos').hidden=buscar;
+  if(!buscar) renderSaved();
+}
+function applyTheme(t){if(t)document.documentElement.setAttribute('data-theme',t);else document.documentElement.removeAttribute('data-theme');}
+function wireUi(){
+  $('#searchBtn').addEventListener('click',runSearch);
+  // trocar o ramo ou o estado: antes da 1ª busca só atualiza o guia; depois já refaz a busca
+  $('#niche').addEventListener('change',()=>{ updateGuide(); if(searched) runSearch(); });
+  $('#city').addEventListener('change',()=>{ updateGuide(); if(searched) runSearch(); });
+  window.addEventListener('resize',()=>{ if(!searched) updateGuide(); });
+  // exemplos prontos: preenche os campos e já busca
+  $('#quick').addEventListener('click',e=>{
+    const b=e.target.closest('[data-niche]'); if(!b) return;
+    $('#niche').value=b.dataset.niche; $('#city').value=b.dataset.state;
+    updateGuide(); runSearch(); window.scrollTo({top:0,behavior:'smooth'});
+  });
+  $('#list').addEventListener('click',e=>{
+    if(e.target.closest('[data-select]')){ e.stopPropagation(); return; } // deixa o checkbox agir normalmente
+    const el=e.target.closest('[data-id]');if(!el)return;selectLead(el.dataset.id);
+  });
+  $('#list').addEventListener('change',e=>{
+    const chk=e.target.closest('[data-select]'); if(!chk) return;
+    toggleSelect(chk.dataset.select,chk.checked);
+  });
+  $('#bulkSelAll').addEventListener('click',()=>{
+    results.forEach(b=>{ if(waNumber(b)) selectedIds.add(b.id); });
+    renderList();
+  });
+  $('#bulkClear').addEventListener('click',()=>{ selectedIds.clear(); renderList(); });
+  $('#bulkWa').addEventListener('click',openWaQueue);
+  $('#bulkMail').addEventListener('click',openMailBulk);
+  $('#waQueueClose').addEventListener('click',closeWaQueue);
+  $('#waQueueOverlay').addEventListener('click',e=>{ if(e.target.id==='waQueueOverlay') closeWaQueue(); });
+  $('#waNextBtn').addEventListener('click',waOpenNext);
+  $('#waQueueList').addEventListener('click',e=>{
+    const op=e.target.closest('[data-wa-open]'); if(op){ waOpenOne(op.dataset.waOpen); return; }
+    const sk=e.target.closest('[data-wa-skip]');
+    if(sk){ const q=waQueue.find(x=>x.id===sk.dataset.waSkip); if(q){ q.status='skipped'; renderWaQueue(); } }
+  });
+  $('#mailBulkClose').addEventListener('click',closeMailBulk);
+  $('#mailBulkOverlay').addEventListener('click',e=>{ if(e.target.id==='mailBulkOverlay') closeMailBulk(); });
+  $('#mailBulkSend').addEventListener('click',sendMailBulk);
+  $('#modalClose').addEventListener('click',closeModal);
+  $('#contactsBtn').addEventListener('click',findContactsAll);
+  $('#overlay').addEventListener('click',e=>{ if(e.target.id==='overlay') closeModal(); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
+  $('#tab-buscar').addEventListener('click',()=>switchTab('buscar'));
+  $('#tab-salvos').addEventListener('click',()=>switchTab('salvos'));
+  $('#closeNote').addEventListener('click',()=>{$('#demoNote').hidden=true;uiPrefs.noteClosed=true;savePrefs();});
+  if(uiPrefs.noteClosed)$('#demoNote').hidden=true;
+  $('#themeBtn').addEventListener('click',()=>{
+    const cur=document.documentElement.getAttribute('data-theme');
+    const isDark=cur?cur==='dark':window.matchMedia('(prefers-color-scheme:dark)').matches;
+    const next=isDark?'light':'dark';applyTheme(next);try{localStorage.setItem('radarb2b.theme',next);}catch(e){}});
+  $('#authForm').addEventListener('submit',handleAuthSubmit);
+  $('#authToggle').addEventListener('click',()=>{authMode=authMode==='login'?'signup':'login';$('#authErr').textContent='';syncAuthUi();});
+  $('#histWrap').addEventListener('click',e=>{
+    const b=e.target.closest('[data-niche]'); if(!b) return;
+    $('#niche').value=b.dataset.niche; $('#city').value=b.dataset.city; updateGuide(); runSearch();
+  });
+  $('#exportBtn').addEventListener('click',exportResultsCsv);
+  $('#savedExportBtn').addEventListener('click',()=>{
+    const fStage=$('#savedFltStage').value, fNiche=$('#savedFltNiche').value;
+    exportSavedCsv(Object.values(savedMap).filter(s=>(!fStage||s.stage===fStage)&&(!fNiche||s.niche===fNiche)));
+  });
+  $('#savedFltStage').addEventListener('change',renderSaved);
+  $('#savedFltNiche').addEventListener('change',renderSaved);
+  $('#helpBtn').addEventListener('click',()=>{$('#helpOverlay').hidden=false;document.body.style.overflow='hidden';});
+  $('#helpClose').addEventListener('click',closeHelp);
+  $('#helpOverlay').addEventListener('click',e=>{ if(e.target.id==='helpOverlay') closeHelp(); });
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){ closeHelp(); closeWaQueue(); closeMailBulk(); }
+    if(!$('#overlay').hidden && selectedId && !/^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName||'')){
+      if(e.key==='ArrowDown'||e.key==='ArrowRight') stepLead(1);
+      if(e.key==='ArrowUp'||e.key==='ArrowLeft') stepLead(-1);
+    }
+  });
+}
+function closeHelp(){ const o=$('#helpOverlay'); if(!o||o.hidden) return; o.hidden=true; document.body.style.overflow=''; }
+/* próxima/anterior empresa da lista, com o modal já aberto (setas do teclado) */
+function stepLead(dir){
+  const i=results.findIndex(b=>b.id===selectedId); if(i<0) return;
+  const next=results[i+dir]; if(!next) return;
+  selectLead(next.id);
+}
+
+/* ---------- pré-aquecer o servidor (plano grátis do Render "dorme" sem uso) ---------- */
+fetch(API_BASE+'/api/health').catch(()=>{});
+
+/* ---------- service worker: deixa reaberturas mais rápidas (sempre tenta a rede primeiro) ---------- */
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{ navigator.serviceWorker.register('/sw.js').catch(()=>{}); });
+}
+
+/* ---------- init ---------- */
+(async function(){
+  try{const sv=localStorage.getItem('radarb2b.theme');if(sv)applyTheme(sv);}catch(e){}
+  renderHistory();
+  wireUi();
+  renderAccount();
+  await initBackend();
+  if(MODE==='auth'){
+    syncAuthUi();
+    const {data}=await sb.auth.getSession();
+    await onAuth(data?.session||null);
+  }else{
+    $('#appShell').hidden=false; booted=true;
+    await loadSaved(); initWelcome();
+  }
+})();
+</script>
+</body>
+</html>
